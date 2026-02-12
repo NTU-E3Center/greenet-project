@@ -907,26 +907,56 @@
       <h1 class="page-header">📊 模組一：用電數據模擬</h1>
       <p class="page-subtitle">為缺乏 15 分鐘精度歷史用電數據的客戶，根據用戶特性模擬用電曲線。</p>
 
-      <!-- Step 1: Upload -->
+      <!-- Step 1: 輸入用電數據 -->
       <div class="card" style="margin-bottom:1.5rem;" id="m1-step1">
         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
           <div class="circle active" style="width:2rem;height:2rem;font-size:0.8rem;">1</div>
           <div>
-            <h3 style="font-size:1rem;font-weight:600;margin:0;">Step 1：上傳月結單</h3>
-            <p style="font-size:0.8125rem;color:var(--text-muted);margin:0;">上傳過去 12 個月的電費單資料（CSV / Excel）</p>
+            <h3 style="font-size:1rem;font-weight:600;margin:0;">Step 1：輸入用電數據</h3>
+            <p style="font-size:0.8125rem;color:var(--text-muted);margin:0;">請填入過去 12 個月的尖峰、半尖峰、離峰電費金額（元）</p>
           </div>
         </div>
-        <div
-          style="border:2px dashed var(--border);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;transition:all 150ms;background:#FAFBFC;"
-          onclick="document.getElementById('m1-file').click()" id="m1-dropzone">
-          <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
-          <p style="font-size:0.875rem;color:var(--text-muted);margin:0 0 0.25rem;">點擊或拖曳檔案至此處上傳</p>
-          <p style="font-size:0.75rem;color:var(--text-tertiary);margin:0;">支援 .csv, .xlsx 格式</p>
-          <input type="file" id="m1-file" accept=".csv,.xlsx" style="display:none;" onchange="handleM1Upload(this)">
-        </div>
-        <div id="m1-file-info"
-          style="display:none;margin-top:0.75rem;padding:0.75rem;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:var(--radius);">
-          <p style="margin:0;font-size:0.8125rem;color:#065F46;">✅ 已上傳：<span id="m1-filename"></span></p>
+        <div style="overflow-x:auto;">
+          <table class="m1-input-table" style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+            <thead>
+              <tr>
+                <th
+                  style="text-align:left;padding:0.5rem 0.75rem;background:var(--muted);font-size:0.75rem;border-bottom:1px solid var(--border);min-width:150px;">
+                  月份</th>
+                <th
+                  style="text-align:center;padding:0.5rem 0.75rem;background:#FEF2F2;color:#991B1B;font-size:0.75rem;border-bottom:1px solid var(--border);min-width:120px;">
+                  🔴 尖峰（元）</th>
+                <th
+                  style="text-align:center;padding:0.5rem 0.75rem;background:#FFF7ED;color:#9A3412;font-size:0.75rem;border-bottom:1px solid var(--border);min-width:120px;">
+                  🟠 半尖峰（元）</th>
+                <th
+                  style="text-align:center;padding:0.5rem 0.75rem;background:#F0FDF4;color:#166534;font-size:0.75rem;border-bottom:1px solid var(--border);min-width:120px;">
+                  🟢 離峰（元）</th>
+                <th
+                  style="text-align:center;padding:0.5rem 0.75rem;background:var(--muted);font-size:0.75rem;border-bottom:1px solid var(--border);min-width:100px;">
+                  小計</th>
+              </tr>
+            </thead>
+            <tbody id="m1-input-tbody">
+            </tbody>
+            <tfoot>
+              <tr style="background:var(--muted);font-weight:600;">
+                <td style="padding:0.625rem 0.75rem;border-top:2px solid var(--border-strong);">合計</td>
+                <td
+                  style="padding:0.625rem 0.75rem;border-top:2px solid var(--border-strong);text-align:center;color:#991B1B;"
+                  id="m1-total-peak">0</td>
+                <td
+                  style="padding:0.625rem 0.75rem;border-top:2px solid var(--border-strong);text-align:center;color:#9A3412;"
+                  id="m1-total-mid">0</td>
+                <td
+                  style="padding:0.625rem 0.75rem;border-top:2px solid var(--border-strong);text-align:center;color:#166534;"
+                  id="m1-total-off">0</td>
+                <td
+                  style="padding:0.625rem 0.75rem;border-top:2px solid var(--border-strong);text-align:center;font-weight:700;"
+                  id="m1-total-all">0</td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </div>
 
@@ -936,7 +966,7 @@
           <div class="circle active" style="width:2rem;height:2rem;font-size:0.8rem;">2</div>
           <div>
             <h3 style="font-size:1rem;font-weight:600;margin:0;">Step 2：選擇用戶類型</h3>
-            <p style="font-size:0.8125rem;color:var(--text-muted);margin:0;">系統將根據上傳的電費單自動解析用電數據，請選擇最接近的用電型態以生成模擬曲線</p>
+            <p style="font-size:0.8125rem;color:var(--text-muted);margin:0;">請選擇最接近的用電型態，系統將結合您填入的電費數據生成模擬曲線</p>
           </div>
         </div>
         <label class="form-label">選擇最接近您的用電型態</label>
@@ -1016,15 +1046,7 @@
             <div class="type-radio"><span class="radio-dot"></span> <span class="radio-text">選擇</span></div>
           </div>
         </div>
-        <div id="m1-parsed-info"
-          style="display:none;margin-bottom:1rem;padding:0.75rem 1rem;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:var(--radius);">
-          <p style="margin:0 0 0.5rem;font-size:0.8125rem;font-weight:600;color:#0369A1;">📋 自動解析結果</p>
-          <div style="display:flex;gap:1rem;font-size:0.8125rem;color:#0C4A6E;">
-            <span>尖峰：<strong id="parsed-peak">15,000</strong> kWh</span>
-            <span>半尖峰：<strong id="parsed-mid">12,000</strong> kWh</span>
-            <span>離峰：<strong id="parsed-off">8,000</strong> kWh</span>
-          </div>
-        </div>
+
         <button class="btn btn-primary btn-block" onclick="runSimulation()">⚡ 生成模擬數據</button>
       </div>
 
@@ -1103,13 +1125,13 @@
             <label class="form-label" style="margin-bottom:0.75rem;">🔋 發電端企業</label>
             <div class="check-list" style="grid-template-columns:1fr;" id="m2-gen-list">
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-001
-                天能太陽能一廠 500kW（收購價 4.2）<span class="source-tag db">📦 DB</span></label>
+                天能太陽能一廠 500kW（收購價 4.20）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-002
-                天能太陽能二廠 300kW（收購價 4.5）<span class="source-tag db">📦 DB</span></label>
+                天能太陽能二廠 300kW（收購價 4.50）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-003
-                天能太陽能三廠 800kW（收購價 3.8）<span class="source-tag db">📦 DB</span></label>
+                天能太陽能三廠 800kW（收購價 3.80）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> ☀️ GEN-004 天能太陽能四廠
-                200kW（收購價 4.8）<span class="source-tag db">📦 DB</span></label>
+                200kW（收購價 4.80）<span class="source-tag db">📦 DB</span></label>
             </div>
             <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
               onclick="toggleM2AddForm('gen')">➕ 手動新增發電端企業</button>
@@ -1132,7 +1154,7 @@
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
                   <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">收購價
-                      (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="4.2"
+                      (元/度)</label><input class="form-input" type="number" step="0.01" placeholder="4.20"
                       id="m2-new-gen-price"></div>
                   <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">轉供比例
                       (%)</label><input class="form-input" type="number" value="100" min="0" max="100"
@@ -1158,13 +1180,13 @@
             <label class="form-label" style="margin-bottom:0.75rem;">🏢 用電端企業</label>
             <div class="check-list" style="grid-template-columns:1fr;" id="m2-usr-list">
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏭 USR-001
-                台積電竹科廠（售電價 5.0）<span class="source-tag db">📦 DB</span></label>
+                台積電竹科廠（售電價 5.00）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏢 USR-002
-                聯華電子總部（售電價 5.2）<span class="source-tag db">📦 DB</span></label>
+                聯華電子總部（售電價 5.20）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏪 USR-003
-                全家便利商店A區（售電價 5.5）<span class="source-tag db">📦 DB</span></label>
+                全家便利商店A區（售電價 5.50）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏬 USR-004
-                遠東百貨板橋店（售電價 5.3）<span class="source-tag db">📦 DB</span></label>
+                遠東百貨板橋店（售電價 5.30）<span class="source-tag db">📦 DB</span></label>
             </div>
             <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
               onclick="toggleM2AddForm('usr')">➕ 手動新增用電端企業</button>
@@ -1176,7 +1198,7 @@
                     class="form-input" type="text" placeholder="例：XX科技股份有限公司" id="m2-new-usr-name"></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">
                   <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">售電價
-                      (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="5.0"
+                      (元/度)</label><input class="form-input" type="number" step="0.01" placeholder="5.00"
                       id="m2-new-usr-price"></div>
                   <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">月上限
                       (kWh)</label><input class="form-input" type="number" placeholder="50000" id="m2-new-usr-mlimit">
@@ -1254,7 +1276,8 @@
                 <td>天能太陽能一廠</td>
                 <td>☀️ 太陽能</td>
                 <td><input class="form-input" type="number" value="500" min="0" style="width:80px;"></td>
-                <td><input class="form-input" type="number" value="4.2" min="0" step="0.1" style="width:90px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="4.20" min="0" step="0.01" style="width:90px;"> 元/度
+                </td>
                 <td><input class="form-input" type="number" value="100" min="0" max="100" style="width:80px;"></td>
                 <td><span class="source-tag db">📦 DB</span></td>
               </tr>
@@ -1263,7 +1286,8 @@
                 <td>天能太陽能二廠</td>
                 <td>☀️ 太陽能</td>
                 <td><input class="form-input" type="number" value="300" min="0" style="width:80px;"></td>
-                <td><input class="form-input" type="number" value="4.5" min="0" step="0.1" style="width:90px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="4.50" min="0" step="0.01" style="width:90px;"> 元/度
+                </td>
                 <td><input class="form-input" type="number" value="100" min="0" max="100" style="width:80px;"></td>
                 <td><span class="source-tag db">📦 DB</span></td>
               </tr>
@@ -1272,7 +1296,8 @@
                 <td>天能風力發電廠</td>
                 <td>🌊 風力</td>
                 <td><input class="form-input" type="number" value="800" min="0" style="width:80px;"></td>
-                <td><input class="form-input" type="number" value="3.8" min="0" step="0.1" style="width:90px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="3.80" min="0" step="0.01" style="width:90px;"> 元/度
+                </td>
                 <td><input class="form-input" type="number" value="80" min="0" max="100" style="width:80px;"></td>
                 <td><span class="source-tag db">📦 DB</span></td>
               </tr>
@@ -1296,7 +1321,8 @@
               <tr>
                 <td>USR-001</td>
                 <td>台積電竹科廠</td>
-                <td><input class="form-input" type="number" value="5.0" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="5.00" min="0" step="0.01" style="width:80px;"> 元/度
+                </td>
                 <td><input class="form-input" type="number" value="50000" style="width:100px;"></td>
                 <td><input class="form-input" type="number" value="500000" style="width:110px;"></td>
                 <td><span class="source-tag db">📦 DB</span></td>
@@ -1304,7 +1330,8 @@
               <tr>
                 <td>USR-002</td>
                 <td>聯華電子總部</td>
-                <td><input class="form-input" type="number" value="5.2" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="5.20" min="0" step="0.01" style="width:80px;"> 元/度
+                </td>
                 <td><input class="form-input" type="number" value="30000" style="width:100px;"></td>
                 <td><input class="form-input" type="number" value="300000" style="width:110px;"></td>
                 <td><span class="source-tag db">📦 DB</span></td>
@@ -1312,7 +1339,8 @@
               <tr>
                 <td>USR-003</td>
                 <td>全家便利商店A區</td>
-                <td><input class="form-input" type="number" value="5.5" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="5.50" min="0" step="0.01" style="width:80px;"> 元/度
+                </td>
                 <td><input class="form-input" type="number" value="15000" style="width:100px;"></td>
                 <td><input class="form-input" type="number" value="150000" style="width:110px;"></td>
                 <td><span class="source-tag db">📦 DB</span></td>
@@ -1320,7 +1348,8 @@
               <tr>
                 <td>USR-004</td>
                 <td>遠東百貨板橋店</td>
-                <td><input class="form-input" type="number" value="5.3" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="5.30" min="0" step="0.01" style="width:80px;"> 元/度
+                </td>
                 <td><input class="form-input" type="number" value="25000" style="width:100px;"></td>
                 <td><input class="form-input" type="number" value="250000" style="width:110px;"></td>
                 <td><span class="source-tag db">📦 DB</span></td>
@@ -1492,10 +1521,6 @@
           <div id="m2-month-content"></div>
         </div>
 
-        <div class="chart-wrap">
-          <h4>分時段轉供量統計（6個月合計）</h4><canvas id="chartSettle"></canvas>
-        </div>
-        <button class="btn btn-success btn-block" style="margin-top:1rem;" onclick="completeM2()">✓ 確認結算，進入最佳化</button>
       </div>
     </div>
 
@@ -1518,7 +1543,15 @@
       <div class="opt-step" id="opt-step-1">
         <div class="banner">
           <h4>Step 1：選擇參與優化的範圍</h4>
-          <p>勾選要參與本次優化的發電端與用電端。若企業不在資料庫中，可手動新增。已簽長約不能動的配對不選進來。</p>
+          <p>勾選要參與本次優化的發電端與用電端。若企業不在資料庫中，可手動新增。</p>
+        </div>
+        <div
+          style="margin-bottom:0.75rem;padding:0.625rem 0.875rem;background:#FEF3C7;border:1px solid #FDE68A;border-radius:var(--radius);display:flex;align-items:center;gap:0.5rem;">
+          <input type="checkbox" id="m3-exclude-taipower" onchange="toggleTaipowerExclude(this.checked)"
+            style="width:16px;height:16px;cursor:pointer;">
+          <label for="m3-exclude-taipower"
+            style="font-size:0.8125rem;font-weight:500;color:#946e28;cursor:pointer;margin:0;">不考慮已簽轉供契約發電端</label>
+          <span style="font-size:0.6875rem;color:#B45309;margin-left:auto;">已簽台電轉供契約之案場將不參與最佳化</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
           <!-- Generator Side -->
@@ -1526,13 +1559,17 @@
             <label class="form-label" style="margin-bottom:0.75rem;">🔋 發電端（勾選參與優化）</label>
             <div class="check-list" style="grid-template-columns:1fr;" id="m3-gen-list">
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-001
-                天能太陽能一廠 500kW（收購價 4.2）<span class="source-tag db">📦 DB</span></label>
+                天能太陽能一廠 500kW（收購價 4.20）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-002
-                天能太陽能二廠 300kW（收購價 4.5）<span class="source-tag db">📦 DB</span></label>
-              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-003
-                天能太陽能三廠 800kW（收購價 3.8）<span class="source-tag db">📦 DB</span></label>
-              <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> ☀️ GEN-004 天能太陽能四廠
-                200kW（收購價 4.8）<span class="source-tag db">📦 DB</span></label>
+                天能太陽能二廠 300kW（收購價 4.50）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked" data-taipower="true"><input type="checkbox" checked
+                  onchange="toggleCheck(this)"> ☀️ GEN-003
+                天能太陽能三廠 800kW（收購價 3.80）<span class="source-tag db">📦 DB</span> <span
+                  style="font-size:0.6875rem;color:#DC2626;font-weight:600;">已簽轉供契約</span></label>
+              <label class="check-item" data-taipower="true"><input type="checkbox" onchange="toggleCheck(this)"> ☀️
+                GEN-004 天能太陽能四廠
+                200kW（收購價 4.80）<span class="source-tag db">📦 DB</span> <span
+                  style="font-size:0.6875rem;color:#DC2626;font-weight:600;">已簽轉供契約</span></label>
             </div>
             <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
               onclick="toggleM3AddForm('gen')">➕ 手動新增發電端案場</button>
@@ -1554,7 +1591,7 @@
                       (kW)</label><input class="form-input" type="number" placeholder="500" id="m3-new-gen-cap"></div>
                 </div>
                 <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">收購價
-                    (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="4.2"
+                    (元/度)</label><input class="form-input" type="number" step="0.01" placeholder="4.20"
                     id="m3-new-gen-price"></div>
                 <div class="form-group">
                   <label style="font-size:0.75rem;color:var(--text-muted);">上傳發電時序資料 (15分鐘, CSV)</label>
@@ -1576,15 +1613,15 @@
             <label class="form-label" style="margin-bottom:0.75rem;">🏢 用電端（勾選參與優化）</label>
             <div class="check-list" style="grid-template-columns:1fr;" id="m3-usr-list">
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏭 USR-001
-                台積電竹科廠（售電價 5.0）<span class="source-tag db">📦 DB</span></label>
+                台積電竹科廠（售電價 5.00）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏢 USR-002
-                聯華電子總部（售電價 5.2）<span class="source-tag db">📦 DB</span></label>
+                聯華電子總部（售電價 5.20）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏪 USR-003
-                全家便利商店A區（售電價 5.5）<span class="source-tag db">📦 DB</span></label>
+                全家便利商店A區（售電價 5.50）<span class="source-tag db">📦 DB</span></label>
               <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏬 USR-004
-                遠東百貨板橋店（售電價 5.3）<span class="source-tag db">📦 DB</span></label>
-              <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> 🏢 USR-005 辦公型（售電價 4.9）🔒
-                長約 <span class="source-tag db">📦 DB</span></label>
+                遠東百貨板橋店（售電價 5.30）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> 🏢 USR-005 辦公型（售電價 4.90）
+                <span class="source-tag db">📦 DB</span></label>
             </div>
             <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
               onclick="toggleM3AddForm('usr')">➕ 手動新增用電端企業</button>
@@ -1595,7 +1632,7 @@
                 <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">企業名稱</label><input
                     class="form-input" type="text" placeholder="例：XX科技" id="m3-new-usr-name"></div>
                 <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">售電價
-                    (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="5.0"
+                    (元/度)</label><input class="form-input" type="number" step="0.01" placeholder="5.00"
                     id="m3-new-usr-price"></div>
                 <div class="form-group">
                   <label style="font-size:0.75rem;color:var(--text-muted);">上傳用電時序資料 (15分鐘, CSV)</label>
@@ -1622,6 +1659,21 @@
           <h4>Step 2：設定約束條件</h4>
           <p>設定保收量、保供量及電號綁定等約束。演算法會自動遵守這些限制。</p>
         </div>
+        <div class="card" style="margin-bottom:1.5rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">⚙️ 全域參數</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="margin-bottom:0.375rem;">最大總契約數</label>
+              <input class="form-input" type="number" value="10" min="1" style="width:120px;" id="m3-max-contracts">
+              <p style="font-size:0.6875rem;color:var(--text-tertiary);margin-top:0.25rem;">演算法產出的契約總數不會超過此上限</p>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="margin-bottom:0.375rem;">發電契約可拆分數</label>
+              <input class="form-input" type="number" value="3" min="1" style="width:120px;" id="m3-gen-split">
+              <p style="font-size:0.6875rem;color:var(--text-tertiary);margin-top:0.25rem;">每個發電端可被拆分配對至的最大用電端數量</p>
+            </div>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
           <div class="card">
             <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">發電端約束</h4>
@@ -1630,24 +1682,20 @@
                 <tr>
                   <th>電號</th>
                   <th>保收量(kWh)</th>
-                  <th>可拆分數</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>GEN-001</td>
                   <td><input class="form-input" value="200000" style="width:100px;"></td>
-                  <td><input class="form-input" value="3" style="width:60px;"></td>
                 </tr>
                 <tr>
                   <td>GEN-002</td>
                   <td><input class="form-input" value="120000" style="width:100px;"></td>
-                  <td><input class="form-input" value="2" style="width:60px;"></td>
                 </tr>
                 <tr>
                   <td>GEN-003</td>
                   <td><input class="form-input" value="350000" style="width:100px;"></td>
-                  <td><input class="form-input" value="4" style="width:60px;"></td>
                 </tr>
               </tbody>
             </table>
@@ -1717,6 +1765,23 @@
         </div>
         <!-- Generator Confirmation Table -->
         <div class="card" style="margin-bottom:1rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">⚙️ 全域參數</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div style="padding:0.75rem;background:var(--muted);border-radius:var(--radius);">
+              <span
+                style="font-size:0.75rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">最大總契約數</span>
+              <div style="font-size:1.125rem;font-weight:700;color:var(--primary);margin-top:0.25rem;"
+                id="m3-confirm-max-contracts">10</div>
+            </div>
+            <div style="padding:0.75rem;background:var(--muted);border-radius:var(--radius);">
+              <span
+                style="font-size:0.75rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">發電契約可拆分數</span>
+              <div style="font-size:1.125rem;font-weight:700;color:var(--primary);margin-top:0.25rem;"
+                id="m3-confirm-gen-split">3</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
           <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">🔋 發電端案場</h4>
           <div style="overflow-x:auto;">
             <table>
@@ -1728,7 +1793,6 @@
                   <th>容量(kW)</th>
                   <th>收購價(元/度)</th>
                   <th>保收量(kWh)</th>
-                  <th>可拆分數</th>
                   <th>數據來源</th>
                 </tr>
               </thead>
@@ -1738,9 +1802,8 @@
                   <td>天能太陽能一廠</td>
                   <td>☀️ 太陽能</td>
                   <td><input class="form-input" type="number" value="500" style="width:75px;"></td>
-                  <td><input class="form-input" type="number" value="4.2" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="4.20" step="0.01" style="width:75px;"></td>
                   <td><input class="form-input" type="number" value="200000" style="width:95px;"></td>
-                  <td><input class="form-input" type="number" value="3" style="width:55px;"></td>
                   <td><span class="source-tag db">📦 DB</span></td>
                 </tr>
                 <tr>
@@ -1748,9 +1811,8 @@
                   <td>天能太陽能二廠</td>
                   <td>☀️ 太陽能</td>
                   <td><input class="form-input" type="number" value="300" style="width:75px;"></td>
-                  <td><input class="form-input" type="number" value="4.5" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="4.50" step="0.01" style="width:75px;"></td>
                   <td><input class="form-input" type="number" value="120000" style="width:95px;"></td>
-                  <td><input class="form-input" type="number" value="2" style="width:55px;"></td>
                   <td><span class="source-tag db">📦 DB</span></td>
                 </tr>
                 <tr>
@@ -1758,9 +1820,8 @@
                   <td>天能太陽能三廠</td>
                   <td>☀️ 太陽能</td>
                   <td><input class="form-input" type="number" value="800" style="width:75px;"></td>
-                  <td><input class="form-input" type="number" value="3.8" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="3.80" step="0.01" style="width:75px;"></td>
                   <td><input class="form-input" type="number" value="350000" style="width:95px;"></td>
-                  <td><input class="form-input" type="number" value="4" style="width:55px;"></td>
                   <td><span class="source-tag db">📦 DB</span></td>
                 </tr>
               </tbody>
@@ -1786,7 +1847,7 @@
                 <tr>
                   <td>USR-001</td>
                   <td>台積電竹科廠</td>
-                  <td><input class="form-input" type="number" value="5.0" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="5.00" step="0.01" style="width:75px;"></td>
                   <td><input class="form-input" type="number" value="300000" style="width:95px;"></td>
                   <td><select class="form-input" style="width:120px;">
                       <option selected>獨立</option>
@@ -1798,7 +1859,7 @@
                 <tr>
                   <td>USR-002</td>
                   <td>聯華電子總部</td>
-                  <td><input class="form-input" type="number" value="5.2" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="5.20" step="0.01" style="width:75px;"></td>
                   <td><input class="form-input" type="number" value="150000" style="width:95px;"></td>
                   <td><select class="form-input" style="width:120px;">
                       <option>獨立</option>
@@ -1810,7 +1871,7 @@
                 <tr>
                   <td>USR-003</td>
                   <td>全家便利商店A區</td>
-                  <td><input class="form-input" type="number" value="5.5" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="5.50" step="0.01" style="width:75px;"></td>
                   <td><input class="form-input" type="number" value="80000" style="width:95px;"></td>
                   <td><select class="form-input" style="width:120px;">
                       <option selected>獨立</option>
@@ -1822,7 +1883,7 @@
                 <tr>
                   <td>USR-004</td>
                   <td>遠東百貨板橋店</td>
-                  <td><input class="form-input" type="number" value="5.3" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="5.30" step="0.01" style="width:75px;"></td>
                   <td><input class="form-input" type="number" value="120000" style="width:95px;"></td>
                   <td><select class="form-input" style="width:120px;">
                       <option>獨立</option>
@@ -1857,12 +1918,8 @@
           <div id="ga-done" style="display:none;">
             <p style="font-size:1.25rem;margin-bottom:0.5rem;">✅</p>
             <p style="font-size:0.875rem;font-weight:600;color:var(--success-dark);">最佳化完成！找到最佳配對方案</p>
-            <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">共計算 500 代 × 100 族群，耗時 12.3 秒</p>
             <button class="btn btn-success" style="margin-top:1rem;" onclick="showOptStep(4)">查看結果 →</button>
           </div>
-        </div>
-        <div class="chart-wrap" id="ga-chart-wrap" style="display:none;">
-          <h4>GA 收斂曲線</h4><canvas id="chartGA"></canvas>
         </div>
       </div>
 
@@ -1911,8 +1968,8 @@
                 <tr>
                   <th>契約</th>
                   <th>發電端</th>
-                  <th>用電端</th>
                   <th>轉供比例</th>
+                  <th>用電端</th>
                   <th>月上限 (kWh)</th>
                   <th>年上限 (kWh)</th>
                   <th>預估轉供量</th>
@@ -1920,13 +1977,13 @@
                 </tr>
               </thead>
               <tbody>
-                <!-- OPT-001: 1 Generator → 3 Consumers -->
+                <!-- OPT-001: GEN-003 (100%) → 3 Consumers -->
                 <tr style="border-top:2px solid #E2E8F0;">
                   <td rowspan="3"><strong style="color:#3B82F6;">OPT-001</strong><br><span
                       style="font-size:0.7rem;color:#94A3B8;">1對3</span></td>
                   <td rowspan="3">☀️ GEN-003 天能太陽能三廠<br><span style="font-size:0.75rem;color:#94A3B8;">800kW</span></td>
+                  <td rowspan="3" style="font-weight:600;">100%</td>
                   <td>🏭 USR-001 台積電竹科廠</td>
-                  <td>45%</td>
                   <td>12,000</td>
                   <td>140,000</td>
                   <td>126,000</td>
@@ -1934,7 +1991,6 @@
                 </tr>
                 <tr>
                   <td>🏪 USR-003 全家便利商店A區</td>
-                  <td>30%</td>
                   <td>8,000</td>
                   <td>96,000</td>
                   <td>84,000</td>
@@ -1942,7 +1998,6 @@
                 </tr>
                 <tr>
                   <td>🏬 USR-004 遠東百貨板橋店</td>
-                  <td>25%</td>
                   <td>7,000</td>
                   <td>80,000</td>
                   <td>70,000</td>
@@ -1950,21 +2005,21 @@
                 </tr>
                 <tr style="background:#F0FDF4;font-size:0.8rem;">
                   <td colspan="3" style="text-align:right;font-weight:600;color:#64748B;">OPT-001 小計</td>
-                  <td style="font-weight:600;">100%</td>
+                  <td></td>
                   <td>27,000</td>
                   <td>316,000</td>
                   <td style="font-weight:600;">280,000</td>
                   <td style="color:var(--success);font-weight:700;">$399,000</td>
                 </tr>
 
-                <!-- OPT-002: 2 Generators → 1 Consumer -->
+                <!-- OPT-002: 2 Generators → 1 Consumer (USR-002) -->
                 <tr style="border-top:2px solid #E2E8F0;">
                   <td rowspan="2"><strong style="color:#3B82F6;">OPT-002</strong><br><span
                       style="font-size:0.7rem;color:#94A3B8;">2對1</span></td>
                   <td>☀️ GEN-001 天能太陽能一廠<br><span style="font-size:0.75rem;color:#94A3B8;">500kW</span></td>
-                  <td rowspan="2">🏢 USR-002 聯華電子總部<br><span style="font-size:0.75rem;color:#94A3B8;">售電價 5.2</span>
+                  <td style="font-weight:600;">35%</td>
+                  <td rowspan="2">🏢 USR-002 聯華電子總部<br><span style="font-size:0.75rem;color:#94A3B8;">售電價 5.20</span>
                   </td>
-                  <td>60%</td>
                   <td>4,000</td>
                   <td>48,000</td>
                   <td>42,000</td>
@@ -1972,7 +2027,7 @@
                 </tr>
                 <tr>
                   <td>☀️ GEN-002 天能太陽能二廠<br><span style="font-size:0.75rem;color:#94A3B8;">300kW</span></td>
-                  <td>40%</td>
+                  <td style="font-weight:600;">40%</td>
                   <td>2,500</td>
                   <td>28,000</td>
                   <td>18,000</td>
@@ -1980,33 +2035,41 @@
                 </tr>
                 <tr style="background:#F0FDF4;font-size:0.8rem;">
                   <td colspan="3" style="text-align:right;font-weight:600;color:#64748B;">OPT-002 小計</td>
-                  <td style="font-weight:600;">100%</td>
+                  <td></td>
                   <td>6,500</td>
                   <td>76,000</td>
                   <td style="font-weight:600;">60,000</td>
                   <td style="color:var(--success);font-weight:700;">$46,200</td>
                 </tr>
 
-                <!-- OPT-003: 1:1 Simple -->
+                <!-- OPT-003: GEN-001 (40%) → USR-001 -->
                 <tr style="border-top:2px solid #E2E8F0;">
                   <td><strong style="color:#3B82F6;">OPT-003</strong><br><span
                       style="font-size:0.7rem;color:#94A3B8;">1對1</span></td>
                   <td>☀️ GEN-001 天能太陽能一廠<br><span style="font-size:0.75rem;color:#94A3B8;">500kW</span></td>
+                  <td style="font-weight:600;">40%</td>
                   <td>🏭 USR-001 台積電竹科廠</td>
-                  <td>40%</td>
                   <td>3,000</td>
                   <td>32,000</td>
                   <td>28,000</td>
                   <td style="color:var(--success);font-weight:600;">$22,400</td>
                 </tr>
+                <tr style="background:#F0FDF4;font-size:0.8rem;">
+                  <td colspan="3" style="text-align:right;font-weight:600;color:#64748B;">OPT-003 小計</td>
+                  <td></td>
+                  <td>3,000</td>
+                  <td>32,000</td>
+                  <td style="font-weight:600;">28,000</td>
+                  <td style="color:var(--success);font-weight:700;">$22,400</td>
+                </tr>
 
-                <!-- OPT-004: 2 Generators → 2 Consumers -->
+                <!-- OPT-004: GEN-002 (60%) + GEN-001 (25%) → 2 Consumers -->
                 <tr style="border-top:2px solid #E2E8F0;">
                   <td rowspan="4"><strong style="color:#3B82F6;">OPT-004</strong><br><span
                       style="font-size:0.7rem;color:#94A3B8;">2對2</span></td>
                   <td rowspan="2">☀️ GEN-002 天能太陽能二廠<br><span style="font-size:0.75rem;color:#94A3B8;">300kW</span></td>
+                  <td rowspan="2" style="font-weight:600;">60%</td>
                   <td>🏪 USR-003 全家便利商店A區</td>
-                  <td>35%</td>
                   <td>2,000</td>
                   <td>22,000</td>
                   <td>16,800</td>
@@ -2014,7 +2077,6 @@
                 </tr>
                 <tr>
                   <td>🏬 USR-004 遠東百貨板橋店</td>
-                  <td>25%</td>
                   <td>1,500</td>
                   <td>16,000</td>
                   <td>10,000</td>
@@ -2023,8 +2085,8 @@
                 <tr>
                   <td rowspan="2">☀️ GEN-001 天能太陽能一廠<br><span style="font-size:0.75rem;color:#94A3B8;">500kW 剩餘</span>
                   </td>
+                  <td rowspan="2" style="font-weight:600;">25%</td>
                   <td>🏪 USR-003 全家便利商店A區</td>
-                  <td>25%</td>
                   <td>1,800</td>
                   <td>20,000</td>
                   <td>14,000</td>
@@ -2032,7 +2094,6 @@
                 </tr>
                 <tr>
                   <td>🏬 USR-004 遠東百貨板橋店</td>
-                  <td>15%</td>
                   <td>1,200</td>
                   <td>12,000</td>
                   <td>8,000</td>
@@ -2040,7 +2101,7 @@
                 </tr>
                 <tr style="background:#F0FDF4;font-size:0.8rem;">
                   <td colspan="3" style="text-align:right;font-weight:600;color:#64748B;">OPT-004 小計</td>
-                  <td style="font-weight:600;">100%</td>
+                  <td></td>
                   <td>6,500</td>
                   <td>70,000</td>
                   <td style="font-weight:600;">48,800</td>
@@ -2091,15 +2152,49 @@
       document.getElementById('userType').value = type;
     }
 
-    function handleM1Upload(input) {
-      if (input.files.length > 0) {
-        document.getElementById('m1-filename').textContent = input.files[0].name;
-        document.getElementById('m1-file-info').style.display = 'block';
-        document.getElementById('m1-dropzone').style.borderColor = 'var(--success)';
-        // Simulate auto-parsing the uploaded file
-        document.getElementById('m1-parsed-info').style.display = 'block';
+    // Module 1: Build 12-month input table (user fills in month)
+    (function initM1InputTable() {
+      const tbody = document.getElementById('m1-input-tbody');
+      for (let i = 0; i < 12; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding:0.375rem 0.5rem;border-bottom:1px solid var(--border);">
+            <input type="month" class="form-input m1-month" style="padding:0.375rem 0.5rem;min-width:140px;">
+          </td>
+          <td style="padding:0.375rem 0.5rem;border-bottom:1px solid var(--border);">
+            <input type="number" class="form-input m1-peak" data-month="${i}" placeholder="0" min="0" style="text-align:right;padding:0.375rem 0.5rem;" oninput="updateM1Totals()">
+          </td>
+          <td style="padding:0.375rem 0.5rem;border-bottom:1px solid var(--border);">
+            <input type="number" class="form-input m1-mid" data-month="${i}" placeholder="0" min="0" style="text-align:right;padding:0.375rem 0.5rem;" oninput="updateM1Totals()">
+          </td>
+          <td style="padding:0.375rem 0.5rem;border-bottom:1px solid var(--border);">
+            <input type="number" class="form-input m1-off" data-month="${i}" placeholder="0" min="0" style="text-align:right;padding:0.375rem 0.5rem;" oninput="updateM1Totals()">
+          </td>
+          <td style="padding:0.5rem 0.75rem;border-bottom:1px solid var(--border);text-align:center;font-weight:500;color:var(--text-muted);" class="m1-row-total">0</td>
+        `;
+        tbody.appendChild(tr);
       }
+    })();
+
+    function updateM1Totals() {
+      let totalPeak = 0, totalMid = 0, totalOff = 0;
+      const rows = document.querySelectorAll('#m1-input-tbody tr');
+      rows.forEach(row => {
+        const p = parseFloat(row.querySelector('.m1-peak').value) || 0;
+        const m = parseFloat(row.querySelector('.m1-mid').value) || 0;
+        const o = parseFloat(row.querySelector('.m1-off').value) || 0;
+        totalPeak += p;
+        totalMid += m;
+        totalOff += o;
+        row.querySelector('.m1-row-total').textContent = (p + m + o).toLocaleString();
+      });
+      document.getElementById('m1-total-peak').textContent = totalPeak.toLocaleString();
+      document.getElementById('m1-total-mid').textContent = totalMid.toLocaleString();
+      document.getElementById('m1-total-off').textContent = totalOff.toLocaleString();
+      document.getElementById('m1-total-all').textContent = (totalPeak + totalMid + totalOff).toLocaleString();
     }
+
+
     function showM1Step2() {
       document.getElementById('m1-step1').style.display = 'none';
       document.getElementById('m1-step2').style.display = 'block';
@@ -2114,12 +2209,17 @@
 
     // Module 1: Simulation — generate full-year 35,040 data points
     function runSimulation() {
-      // Auto-parsed values from uploaded file (simulated)
-      const peak = 15000;
-      const mid = 12000;
-      const off = 8000;
+      // Read user-entered monthly values and compute totals
+      let peak = 0, mid = 0, off = 0;
+      document.querySelectorAll('.m1-peak').forEach(el => peak += (parseFloat(el.value) || 0));
+      document.querySelectorAll('.m1-mid').forEach(el => mid += (parseFloat(el.value) || 0));
+      document.querySelectorAll('.m1-off').forEach(el => off += (parseFloat(el.value) || 0));
+      if (peak + mid + off === 0) {
+        alert('請先填入至少一個月的用電金額數據');
+        return;
+      }
       const total = peak + mid + off;
-      document.getElementById('avgKwh').textContent = total.toLocaleString();
+      document.getElementById('avgKwh').textContent = Math.round(total / 12).toLocaleString();
       document.getElementById('peakRatio').textContent = Math.round(peak / total * 100) + '%';
       document.getElementById('sim-result').style.display = 'block';
 
@@ -2303,7 +2403,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = '<td>' + id + '</td><td>' + name + '</td><td>' + genType + '</td>' +
           '<td><input class="form-input" type="number" value="' + cap + '" min="0" style="width:80px;"></td>' +
-          '<td><input class="form-input" type="number" value="' + price + '" min="0" step="0.1" style="width:90px;"> 元/度</td>' +
+          '<td><input class="form-input" type="number" value="' + price + '" min="0" step="0.01" style="width:90px;"> 元/度</td>' +
           '<td><input class="form-input" type="number" value="' + ratio + '" min="0" max="100" style="width:80px;"></td>' +
           '<td><span class="source-tag manual">📤 手動上傳</span></td>';
         tbody.appendChild(tr);
@@ -2328,7 +2428,7 @@
         const tbody = document.getElementById('m2-usr-table-body');
         const tr = document.createElement('tr');
         tr.innerHTML = '<td>' + id + '</td><td>' + name + '</td>' +
-          '<td><input class="form-input" type="number" value="' + price + '" min="0" step="0.1" style="width:80px;"> 元/度</td>' +
+          '<td><input class="form-input" type="number" value="' + price + '" min="0" step="0.01" style="width:80px;"> 元/度</td>' +
           '<td><input class="form-input" type="number" value="' + mlimit + '" style="width:100px;"></td>' +
           '<td><input class="form-input" type="number" value="' + ylimit + '" style="width:110px;"></td>' +
           '<td><span class="source-tag manual">📤 手動上傳</span></td>';
@@ -2410,6 +2510,13 @@
         const el = document.getElementById('st' + i);
         el.className = 'st-item' + (i === n ? ' active' : (i < n ? ' done' : ''));
       }
+      // Sync global params to confirmation view when entering Step 3
+      if (n === 3) {
+        const maxC = document.getElementById('m3-max-contracts');
+        const genS = document.getElementById('m3-gen-split');
+        if (maxC) document.getElementById('m3-confirm-max-contracts').textContent = maxC.value;
+        if (genS) document.getElementById('m3-confirm-gen-split').textContent = genS.value;
+      }
     }
 
     function runGA() {
@@ -2452,6 +2559,23 @@
     let m3GenCounter = 5;
     let m3UsrCounter = 6;
 
+    function toggleTaipowerExclude(exclude) {
+      document.querySelectorAll('#m3-gen-list .check-item[data-taipower="true"]').forEach(label => {
+        const cb = label.querySelector('input[type="checkbox"]');
+        if (exclude) {
+          cb.checked = false;
+          cb.disabled = true;
+          label.classList.remove('checked');
+          label.style.opacity = '0.45';
+          label.style.pointerEvents = 'none';
+        } else {
+          cb.disabled = false;
+          label.style.opacity = '';
+          label.style.pointerEvents = '';
+        }
+      });
+    }
+
     function toggleM3AddForm(type) {
       const form = document.getElementById('m3-add-' + type + '-form');
       form.style.display = form.style.display === 'none' ? 'block' : 'none';
@@ -2462,7 +2586,7 @@
         const name = document.getElementById('m3-new-gen-name').value.trim();
         const genType = document.getElementById('m3-new-gen-type').value;
         const cap = document.getElementById('m3-new-gen-cap').value || '500';
-        const price = document.getElementById('m3-new-gen-price').value || '4.0';
+        const price = document.getElementById('m3-new-gen-price').value || '4.00';
         if (!name) { alert('請輸入案場名稱'); return; }
         const id = 'GEN-' + String(m3GenCounter++).padStart(3, '0');
         const emoji = genType.split(' ')[0];
@@ -2478,7 +2602,7 @@
         document.getElementById('m3-add-gen-form').style.display = 'none';
       } else {
         const name = document.getElementById('m3-new-usr-name').value.trim();
-        const price = document.getElementById('m3-new-usr-price').value || '5.0';
+        const price = document.getElementById('m3-new-usr-price').value || '5.00';
         if (!name) { alert('請輸入企業名稱'); return; }
         const id = 'USR-' + String(m3UsrCounter++).padStart(3, '0');
         const list = document.getElementById('m3-usr-list');
