@@ -1,0 +1,2503 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>綠電轉供最佳化平台</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2"></script>
+  <style>
+    :root {
+      --primary: #0F172A;
+      --primary-fg: #F8FAFC;
+      --bg: #FFFFFF;
+      --surface: #FFFFFF;
+      --muted: #F1F5F9;
+      --muted-fg: #334155;
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --success: #10B981;
+      --success-bg: #D1FAE5;
+      --success-dark: #065F46;
+      --warning: #F59E0B;
+      --warning-bg: #FEF3C7;
+      --error: #EF4444;
+      --error-bg: #FEE2E2;
+      --accent: #6366F1;
+      --accent-bg: #EEF2FF;
+      --accent-dark: #4338CA;
+      --text: #0F172A;
+      --text-muted: #334155;
+      --text-tertiary: #94A3B8;
+      --radius: 0.5rem;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      display: flex;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      border-right: 1px solid var(--border);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      background: var(--surface);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .brand svg {
+      flex-shrink: 0;
+    }
+
+    .brand h2 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .brand-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding-left: 2.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1rem 0;
+    }
+
+    .nav-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+
+    .nav-step {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 150ms;
+      margin-bottom: 0.25rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .nav-step:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-step.active {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .nav-step.done {
+      border-color: var(--success);
+      background: #F0FDF4;
+    }
+
+    .nav-step .circle {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .nav-step .circle.pending {
+      background: #CBD5E1;
+    }
+
+    .nav-step .circle.active {
+      background: var(--accent);
+    }
+
+    .nav-step .circle.done {
+      background: var(--success);
+    }
+
+    .nav-step .step-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .nav-step .step-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .nav-step .step-status {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      padding: 0.125rem 0.5rem;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 0.25rem;
+      margin-left: auto;
+    }
+
+    .nav-arrow {
+      text-align: center;
+      color: #CBD5E1;
+      margin: -0.125rem 0;
+      font-size: 0.875rem;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.6875rem;
+      color: var(--text-tertiary);
+    }
+
+    /* Main */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      max-width: 1140px;
+      padding: 2rem 2.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 150ms, box-shadow 150ms;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow);
+      border-color: var(--border-strong);
+    }
+
+    .card-accent {
+      border-left: 3px solid var(--primary);
+    }
+
+    /* Step Cards on homepage */
+    .step-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .step-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      text-align: center;
+      min-height: 10rem;
+      cursor: pointer;
+      transition: all 200ms;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .step-card.highlight {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .step-card .sc-circle {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background: #CBD5E1;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.5rem;
+      font-weight: 600;
+    }
+
+    .step-card.highlight .sc-circle {
+      background: var(--accent);
+    }
+
+    .step-card h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-card .sc-sub {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .step-card .sc-detail {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 1rem 0 0.5rem;
+    }
+
+    .hero h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero p {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Section */
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      text-align: center;
+      margin: 1.5rem 0 0.25rem;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Page content */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* Page header */
+    .page-header {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      max-width: 65ch;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-select,
+    .form-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: var(--bg);
+      outline: none;
+      transition: border-color 150ms;
+    }
+
+    .form-select:focus,
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 150ms;
+      border: 1px solid var(--border);
+      min-height: 40px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: #1E293B;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: var(--muted);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.625rem 0.75rem;
+      background: var(--muted);
+      color: var(--text);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.625rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:hover td {
+      background: #FAFBFC;
+    }
+
+    /* Metric cards */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+
+    .metric .m-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric .m-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .metric .m-sub {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 0.25rem;
+    }
+
+    .metric.green {
+      border-left-color: var(--success);
+    }
+
+    .metric.red {
+      border-left-color: var(--error);
+    }
+
+    .metric.purple {
+      border-left-color: #8B5CF6;
+    }
+
+    /* Banner */
+    .banner {
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+    }
+
+    .banner.green {
+      border-left-color: var(--success);
+    }
+
+    .banner.purple {
+      border-left-color: #8B5CF6;
+    }
+
+    .banner h4 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .banner p {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    /* Progress */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--muted);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.75rem 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    /* Stepper */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .stepper .st-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 150ms;
+    }
+
+    .stepper .st-item.active {
+      background: var(--accent-bg);
+      border-color: var(--accent);
+      color: var(--accent-dark);
+    }
+
+    .stepper .st-item.done {
+      background: #F0FDF4;
+      border-color: var(--success);
+      color: var(--success-dark);
+    }
+
+    .stepper .st-arrow {
+      color: var(--text-tertiary);
+      font-size: 0.75rem;
+    }
+
+    /* Checkbox list */
+    .check-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: all 150ms;
+    }
+
+    .check-item:hover {
+      background: var(--muted);
+    }
+
+    .check-item.checked {
+      background: var(--accent-bg);
+      border-color: var(--accent);
+    }
+
+    .check-item input[type=checkbox] {
+      accent-color: var(--accent);
+    }
+
+    /* Compare */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .compare .card h4 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Chart container */
+    .chart-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin: 1rem 0;
+    }
+
+    .chart-wrap h4 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    canvas {
+      max-height: 300px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 0.5rem 1rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      transition: all 150ms;
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab:hover {
+      color: var(--primary);
+    }
+
+    /* Settlement flow */
+    .flow-steps {
+      display: flex;
+      align-items: stretch;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .flow-step {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .flow-step h5 {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      margin-bottom: 0.375rem;
+    }
+
+    .flow-step p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .flow-step .arrow {
+      font-size: 1.25rem;
+      color: var(--text-tertiary);
+    }
+
+    /* Type selection cards */
+    .type-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 0.75rem 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 200ms;
+      background: var(--surface);
+    }
+
+    .type-card:hover {
+      border-color: #CBD5E1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .type-card.selected {
+      border-color: var(--primary);
+      background: #F8FAFF;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .type-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .type-curve {
+      width: 100%;
+      height: 48px;
+      margin-bottom: 0.5rem;
+    }
+
+    .type-radio {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .radio-dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #CBD5E1;
+      transition: all 150ms;
+    }
+
+    .type-card.selected .radio-dot {
+      border-color: var(--primary);
+      background: var(--primary);
+      box-shadow: inset 0 0 0 3px #fff;
+    }
+
+    .type-card.selected .radio-text {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .source-tag {
+      display: inline-block;
+      font-size: 0.6875rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .source-tag.db {
+      background: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+
+    .source-tag.manual {
+      background: #FFFBEB;
+      color: #92400E;
+      border: 1px solid #FDE68A;
+    }
+
+    /* Responsive */
+    @media (max-width:900px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 1rem;
+      }
+
+      .step-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .compare {
+        grid-template-columns: 1fr;
+      }
+
+      .check-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand" onclick="showPage('home')" style="cursor:pointer;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+      </svg>
+      <h2>綠能轉供平台</h2>
+    </div>
+    <p class="brand-sub">智慧媒合與最佳化</p>
+    <div class="divider"></div>
+    <p class="nav-label">成熟度階梯</p>
+    <div class="nav-step" id="nav-m1" onclick="showPage('m1')">
+      <div style="flex:1">
+        <div class="step-title">M1：用電數據模擬</div>
+        <div class="step-desc">模擬用電曲線</div>
+      </div>
+    </div>
+
+    <div class="nav-step" id="nav-m2" onclick="showPage('m2')">
+      <div style="flex:1">
+        <div class="step-title">M2：轉供結算</div>
+        <div class="step-desc">依台電規則計算</div>
+      </div>
+    </div>
+
+    <div class="nav-step" id="nav-m3" onclick="showPage('m3')">
+      <div style="flex:1">
+        <div class="step-title">M3：轉供最佳化</div>
+        <div class="step-desc">AI 輔助決策</div>
+      </div>
+    </div>
+
+    <p class="sidebar-footer">v1.0.0 · PRD Demo</p>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="hero">
+        <h1>綠電轉供最佳化平台</h1>
+      </div>
+      <div
+        style="text-align:center;padding:1.5rem 1rem;margin:1rem 0;background:linear-gradient(135deg,#EEF2FF 0%,#ECFDF5 100%);border-radius:0.75rem;border:1px solid #E2E8F0;">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">⚡</div>
+        <h2 style="font-size:1.125rem;font-weight:600;margin-bottom:0.25rem;">開始您的綠電轉供分析</h2>
+        <p style="color:var(--text-muted);font-size:0.875rem;max-width:500px;margin:0 auto;">
+          選擇用戶類型，輸入電費單資訊，系統將生成模擬數據並協助您進行轉供結算與最佳化</p>
+      </div>
+      <div class="step-cards">
+        <div class="step-card highlight" onclick="showPage('m1')">
+          <div class="sc-circle" style="background:var(--accent);">1</div>
+          <h3>用電數據模擬</h3>
+          <p class="sc-detail">選擇客戶類型 / 輸入電費單 / 生成模擬數據</p>
+        </div>
+        <div class="step-card" onclick="showPage('m2')">
+          <div class="sc-circle">2</div>
+          <h3>轉供結算</h3>
+          <p class="sc-detail">台電規章 / 兩階段配對 / 結算分析</p>
+        </div>
+        <div class="step-card" onclick="showPage('m3')">
+          <div class="sc-circle">3</div>
+          <h3>轉供最佳化</h3>
+          <p class="sc-detail">選擇範圍 / 設定約束 / 最佳化結果</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 1 -->
+    <div class="page" id="page-m1">
+      <h1 class="page-header">📊 模組一：用電數據模擬</h1>
+      <p class="page-subtitle">為缺乏 15 分鐘精度歷史用電數據的客戶，根據用戶特性模擬用電曲線。</p>
+
+      <!-- Step 1: Upload -->
+      <div class="card" style="margin-bottom:1.5rem;" id="m1-step1">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+          <div class="circle active" style="width:2rem;height:2rem;font-size:0.8rem;">1</div>
+          <div>
+            <h3 style="font-size:1rem;font-weight:600;margin:0;">Step 1：上傳月結單</h3>
+            <p style="font-size:0.8125rem;color:var(--text-muted);margin:0;">上傳過去 12 個月的電費單資料（CSV / Excel）</p>
+          </div>
+        </div>
+        <div
+          style="border:2px dashed var(--border);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;transition:all 150ms;background:#FAFBFC;"
+          onclick="document.getElementById('m1-file').click()" id="m1-dropzone">
+          <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
+          <p style="font-size:0.875rem;color:var(--text-muted);margin:0 0 0.25rem;">點擊或拖曳檔案至此處上傳</p>
+          <p style="font-size:0.75rem;color:var(--text-tertiary);margin:0;">支援 .csv, .xlsx 格式</p>
+          <input type="file" id="m1-file" accept=".csv,.xlsx" style="display:none;" onchange="handleM1Upload(this)">
+        </div>
+        <div id="m1-file-info"
+          style="display:none;margin-top:0.75rem;padding:0.75rem;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:var(--radius);">
+          <p style="margin:0;font-size:0.8125rem;color:#065F46;">✅ 已上傳：<span id="m1-filename"></span></p>
+        </div>
+      </div>
+
+      <!-- Step 2: User Type Selection -->
+      <div class="card" style="margin-bottom:1.5rem;" id="m1-step2">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+          <div class="circle active" style="width:2rem;height:2rem;font-size:0.8rem;">2</div>
+          <div>
+            <h3 style="font-size:1rem;font-weight:600;margin:0;">Step 2：選擇用戶類型</h3>
+            <p style="font-size:0.8125rem;color:var(--text-muted);margin:0;">系統將根據上傳的電費單自動解析用電數據，請選擇最接近的用電型態以生成模擬曲線</p>
+          </div>
+        </div>
+        <label class="form-label">選擇最接近您的用電型態</label>
+        <input type="hidden" id="userType" value="24h">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem;"
+          id="m1-type-cards">
+          <!-- 24小時營運 -->
+          <div class="type-card selected" data-type="24h" onclick="selectUserType(this,'24h')">
+            <div style="font-size:1.75rem;margin-bottom:0.25rem;">🏭</div>
+            <div class="type-label">24小時營運</div>
+            <svg viewBox="0 0 120 40" class="type-curve">
+              <defs>
+                <linearGradient id="fill24h" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#94A3B8" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="#94A3B8" stop-opacity="0.05" />
+                </linearGradient>
+              </defs>
+              <path d="M0,12 L10,11 20,13 30,12 40,11 50,12 60,13 70,12 80,11 90,12 100,13 110,12 120,11" fill="none"
+                stroke="#64748B" stroke-width="1.5" />
+              <path d="M0,12 L10,11 20,13 30,12 40,11 50,12 60,13 70,12 80,11 90,12 100,13 110,12 120,11 L120,40 0,40Z"
+                fill="url(#fill24h)" />
+            </svg>
+            <div class="type-radio"><span class="radio-dot"></span> <span class="radio-text">已選擇</span></div>
+          </div>
+          <!-- 辦公室 -->
+          <div class="type-card" data-type="office" onclick="selectUserType(this,'office')">
+            <div style="font-size:1.75rem;margin-bottom:0.25rem;">💼</div>
+            <div class="type-label">辦公室</div>
+            <svg viewBox="0 0 120 40" class="type-curve">
+              <defs>
+                <linearGradient id="fillOffice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#94A3B8" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="#94A3B8" stop-opacity="0.05" />
+                </linearGradient>
+              </defs>
+              <path d="M0,35 L15,34 25,30 35,15 45,8 55,7 65,7 75,8 85,15 95,30 105,34 120,35" fill="none"
+                stroke="#64748B" stroke-width="1.5" />
+              <path d="M0,35 L15,34 25,30 35,15 45,8 55,7 65,7 75,8 85,15 95,30 105,34 120,35 L120,40 0,40Z"
+                fill="url(#fillOffice)" />
+            </svg>
+            <div class="type-radio"><span class="radio-dot"></span> <span class="radio-text">選擇</span></div>
+          </div>
+          <!-- 門市 -->
+          <div class="type-card" data-type="store" onclick="selectUserType(this,'store')">
+            <div style="font-size:1.75rem;margin-bottom:0.25rem;">🏪</div>
+            <div class="type-label">門市</div>
+            <svg viewBox="0 0 120 40" class="type-curve">
+              <defs>
+                <linearGradient id="fillStore" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.05" />
+                </linearGradient>
+              </defs>
+              <path d="M0,30 L10,28 20,22 30,12 40,7 50,5 60,5 70,5 80,7 90,12 100,22 110,28 120,30" fill="none"
+                stroke="#F59E0B" stroke-width="1.5" />
+              <path d="M0,30 L10,28 20,22 30,12 40,7 50,5 60,5 70,5 80,7 90,12 100,22 110,28 120,30 L120,40 0,40Z"
+                fill="url(#fillStore)" />
+            </svg>
+            <div class="type-radio"><span class="radio-dot"></span> <span class="radio-text">選擇</span></div>
+          </div>
+          <!-- 百貨 -->
+          <div class="type-card" data-type="mall" onclick="selectUserType(this,'mall')">
+            <div style="font-size:1.75rem;margin-bottom:0.25rem;">🏬</div>
+            <div class="type-label">百貨</div>
+            <svg viewBox="0 0 120 40" class="type-curve">
+              <defs>
+                <linearGradient id="fillMall" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.05" />
+                </linearGradient>
+              </defs>
+              <path d="M0,35 L20,34 35,32 50,28 60,20 70,12 80,8 90,7 100,8 110,12 120,18" fill="none" stroke="#8B5CF6"
+                stroke-width="1.5" />
+              <path d="M0,35 L20,34 35,32 50,28 60,20 70,12 80,8 90,7 100,8 110,12 120,18 L120,40 0,40Z"
+                fill="url(#fillMall)" />
+            </svg>
+            <div class="type-radio"><span class="radio-dot"></span> <span class="radio-text">選擇</span></div>
+          </div>
+        </div>
+        <div id="m1-parsed-info"
+          style="display:none;margin-bottom:1rem;padding:0.75rem 1rem;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:var(--radius);">
+          <p style="margin:0 0 0.5rem;font-size:0.8125rem;font-weight:600;color:#0369A1;">📋 自動解析結果</p>
+          <div style="display:flex;gap:1rem;font-size:0.8125rem;color:#0C4A6E;">
+            <span>尖峰：<strong id="parsed-peak">15,000</strong> kWh</span>
+            <span>半尖峰：<strong id="parsed-mid">12,000</strong> kWh</span>
+            <span>離峰：<strong id="parsed-off">8,000</strong> kWh</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="runSimulation()">⚡ 生成模擬數據</button>
+      </div>
+
+      <!-- Results -->
+      <div id="sim-result" style="display:none;">
+        <div class="metrics">
+          <div class="metric">
+            <div class="m-label">總模擬數據</div>
+            <div class="m-value">35,040</div>
+            <div class="m-sub">筆 (15分鐘 × 12個月)</div>
+          </div>
+          <div class="metric green">
+            <div class="m-label">月平均用電</div>
+            <div class="m-value" id="avgKwh">35,000</div>
+            <div class="m-sub">kWh/月</div>
+          </div>
+          <div class="metric purple">
+            <div class="m-label">尖峰佔比</div>
+            <div class="m-value" id="peakRatio">43%</div>
+            <div class="m-sub">of total</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
+            <h4 style="margin:0;">15 分鐘負載曲線（全年 35,040 筆）</h4>
+            <div style="display:flex;gap:0.375rem;" id="m1-zoom-controls">
+              <button class="btn btn-outline" style="padding:0.25rem 0.625rem;font-size:0.75rem;"
+                onclick="zoomLoadChart('1d')">1 日</button>
+              <button class="btn btn-outline" style="padding:0.25rem 0.625rem;font-size:0.75rem;"
+                onclick="zoomLoadChart('1w')">1 週</button>
+              <button class="btn btn-outline" style="padding:0.25rem 0.625rem;font-size:0.75rem;"
+                onclick="zoomLoadChart('1m')">1 月</button>
+              <button class="btn btn-outline" style="padding:0.25rem 0.625rem;font-size:0.75rem;"
+                onclick="zoomLoadChart('all')">全年</button>
+              <button class="btn btn-outline" style="padding:0.25rem 0.625rem;font-size:0.75rem;"
+                onclick="resetLoadChartZoom()">🔄 重置</button>
+            </div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--text-tertiary);margin:0 0 0.5rem;">💡 可滾輪縮放 · 拖曳平移 · 或使用上方按鈕快速切換檢視範圍
+          </p>
+          <canvas id="chartLoad" style="height:320px;"></canvas>
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+          <button class="btn btn-outline" style="flex:1;" onclick="exportTimeSeries()">📥 匯出時序資料（存入資料庫）</button>
+          <button class="btn btn-success" style="flex:1;" onclick="completeM1()">✓ 確認數據，進入下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 2 -->
+    <div class="page" id="page-m2">
+      <h1 class="page-header">⚖️ 模組二：轉供結算引擎</h1>
+      <p class="page-subtitle">依據台電《電能轉供與併網型直供營運規章》第 13 條，建立兩階段媒合計算引擎。</p>
+
+      <div class="stepper" id="m2-stepper">
+        <div class="st-item active" id="m2s1" onclick="showM2Step(1)">① 選擇公司</div>
+        <span class="st-arrow">→</span>
+        <div class="st-item" id="m2s2" onclick="showM2Step(2)">② 時間範圍</div>
+        <span class="st-arrow">→</span>
+        <div class="st-item" id="m2s3" onclick="showM2Step(3)">③ 契約設定</div>
+        <span class="st-arrow">→</span>
+        <div class="st-item" id="m2s4" onclick="showM2Step(4)">④ 確認輸入</div>
+        <span class="st-arrow">→</span>
+        <div class="st-item" id="m2s5" onclick="showM2Step(5)">⑤ 結算結果</div>
+      </div>
+
+      <div class="m2-step" id="m2-step-1">
+        <div class="banner">
+          <h4>Step 1：選擇參與結算的公司</h4>
+          <p>勾選本次要進行轉供結算的發電端企業與用電端企業。若企業不在資料庫中，可手動新增並上傳數據。</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+          <!-- Generator Side -->
+          <div>
+            <label class="form-label" style="margin-bottom:0.75rem;">🔋 發電端企業</label>
+            <div class="check-list" style="grid-template-columns:1fr;" id="m2-gen-list">
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-001
+                天能太陽能一廠 500kW（收購價 4.2）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-002
+                天能太陽能二廠 300kW（收購價 4.5）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-003
+                天能太陽能三廠 800kW（收購價 3.8）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> ☀️ GEN-004 天能太陽能四廠
+                200kW（收購價 4.8）<span class="source-tag db">📦 DB</span></label>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
+              onclick="toggleM2AddForm('gen')">➕ 手動新增發電端企業</button>
+            <div id="m2-add-gen-form"
+              style="display:none;margin-top:0.75rem;padding:1rem;background:#FEFCE8;border:1px solid #FDE68A;border-radius:var(--radius);">
+              <h5 style="font-size:0.8125rem;font-weight:600;margin:0 0 0.75rem;color:#92400E;">📝 新增發電端企業</h5>
+              <div style="display:grid;gap:0.5rem;">
+                <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">企業名稱</label><input
+                    class="form-input" type="text" placeholder="例：XX太陽能電廠" id="m2-new-gen-name"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">類型</label>
+                    <select class="form-input" id="m2-new-gen-type">
+                      <option value="☀️ 太陽能">☀️ 太陽能</option>
+                      <option value="🌊 風力">🌊 風力</option>
+                      <option value="💧 水力">💧 水力</option>
+                    </select>
+                  </div>
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">容量
+                      (kW)</label><input class="form-input" type="number" placeholder="500" id="m2-new-gen-cap"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">收購價
+                      (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="4.2"
+                      id="m2-new-gen-price"></div>
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">轉供比例
+                      (%)</label><input class="form-input" type="number" value="100" min="0" max="100"
+                      id="m2-new-gen-ratio"></div>
+                </div>
+                <div class="form-group">
+                  <label style="font-size:0.75rem;color:var(--text-muted);">上傳發電時序資料 (15分鐘, CSV)</label>
+                  <div
+                    style="border:1.5px dashed var(--border);border-radius:var(--radius);padding:0.75rem;text-align:center;cursor:pointer;background:#FFFBEB;"
+                    onclick="this.querySelector('input').click()">
+                    <span style="font-size:0.8125rem;color:var(--text-muted);">📄 點擊上傳 .csv / .xlsx</span>
+                    <input type="file" accept=".csv,.xlsx" style="display:none;"
+                      onchange="this.parentElement.innerHTML='<span style=\'font-size:0.8125rem;color:#065F46;\'>✅ '+this.files[0].name+'</span>'">
+                  </div>
+                </div>
+                <button class="btn btn-primary" style="font-size:0.8125rem;" onclick="addManualCompany('gen')">✓
+                  加入列表</button>
+              </div>
+            </div>
+          </div>
+          <!-- Consumer Side -->
+          <div>
+            <label class="form-label" style="margin-bottom:0.75rem;">🏢 用電端企業</label>
+            <div class="check-list" style="grid-template-columns:1fr;" id="m2-usr-list">
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏭 USR-001
+                台積電竹科廠（售電價 5.0）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏢 USR-002
+                聯華電子總部（售電價 5.2）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏪 USR-003
+                全家便利商店A區（售電價 5.5）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏬 USR-004
+                遠東百貨板橋店（售電價 5.3）<span class="source-tag db">📦 DB</span></label>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
+              onclick="toggleM2AddForm('usr')">➕ 手動新增用電端企業</button>
+            <div id="m2-add-usr-form"
+              style="display:none;margin-top:0.75rem;padding:1rem;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius);">
+              <h5 style="font-size:0.8125rem;font-weight:600;margin:0 0 0.75rem;color:#1E40AF;">📝 新增用電端企業</h5>
+              <div style="display:grid;gap:0.5rem;">
+                <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">企業名稱</label><input
+                    class="form-input" type="text" placeholder="例：XX科技股份有限公司" id="m2-new-usr-name"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">售電價
+                      (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="5.0"
+                      id="m2-new-usr-price"></div>
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">月上限
+                      (kWh)</label><input class="form-input" type="number" placeholder="50000" id="m2-new-usr-mlimit">
+                  </div>
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">年上限
+                      (kWh)</label><input class="form-input" type="number" placeholder="500000" id="m2-new-usr-ylimit">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label style="font-size:0.75rem;color:var(--text-muted);">上傳用電時序資料 (15分鐘, CSV)</label>
+                  <div
+                    style="border:1.5px dashed var(--border);border-radius:var(--radius);padding:0.75rem;text-align:center;cursor:pointer;background:#EFF6FF;"
+                    onclick="this.querySelector('input').click()">
+                    <span style="font-size:0.8125rem;color:var(--text-muted);">📄 點擊上傳 .csv / .xlsx</span>
+                    <input type="file" accept=".csv,.xlsx" style="display:none;"
+                      onchange="this.parentElement.innerHTML='<span style=\'font-size:0.8125rem;color:#065F46;\'>✅ '+this.files[0].name+'</span>'">
+                  </div>
+                </div>
+                <button class="btn btn-primary" style="font-size:0.8125rem;" onclick="addManualCompany('usr')">✓
+                  加入列表</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:1rem;" onclick="showM2Step(2)">下一步 →</button>
+      </div>
+
+      <!-- M2 Step 2: Time Range -->
+      <div class="m2-step" id="m2-step-2" style="display:none;">
+        <div class="banner">
+          <h4>Step 2：選擇計算時間範圍</h4>
+          <p>系統將從資料庫取得該時段內各電號的 15 分鐘時序資料進行結算。</p>
+        </div>
+        <div class="card">
+          <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group"><label class="form-label">起始月份</label><input class="form-input" type="month"
+                value="2025-01" id="m2-start"></div>
+            <div class="form-group"><label class="form-label">結束月份</label><input class="form-input" type="month"
+                value="2025-06" id="m2-end"></div>
+          </div>
+          <div
+            style="margin-top:0.75rem;padding:0.75rem;background:#F8FAFC;border-radius:var(--radius);border:1px solid var(--border);">
+            <p style="margin:0;font-size:0.8125rem;color:var(--text-muted);">📌 系統將自動從 DB 載入所選時段的 15 分鐘發電 / 用電數據</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+          <button class="btn btn-outline" onclick="showM2Step(1)">← 上一步</button>
+          <button class="btn btn-primary" onclick="showM2Step(3)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- M2 Step 3: Contract Config -->
+      <div class="m2-step" id="m2-step-3" style="display:none;">
+        <div class="banner purple">
+          <h4>Step 3：契約參數設定</h4>
+          <p>為各發電端設定轉供比例，並為各用電電號填寫每月 / 每年轉供上限。可確認各企業數據來源。</p>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">🔋 發電端 — 轉供比例 (Pmi)</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>電號</th>
+                <th>案場名稱</th>
+                <th>類型</th>
+                <th>容量(kW)</th>
+                <th>收購價</th>
+                <th>轉供比例(%)</th>
+                <th>數據來源</th>
+              </tr>
+            </thead>
+            <tbody id="m2-gen-table-body">
+              <tr>
+                <td>GEN-001</td>
+                <td>天能太陽能一廠</td>
+                <td>☀️ 太陽能</td>
+                <td><input class="form-input" type="number" value="500" min="0" style="width:80px;"></td>
+                <td><input class="form-input" type="number" value="4.2" min="0" step="0.1" style="width:90px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="100" min="0" max="100" style="width:80px;"></td>
+                <td><span class="source-tag db">📦 DB</span></td>
+              </tr>
+              <tr>
+                <td>GEN-002</td>
+                <td>天能太陽能二廠</td>
+                <td>☀️ 太陽能</td>
+                <td><input class="form-input" type="number" value="300" min="0" style="width:80px;"></td>
+                <td><input class="form-input" type="number" value="4.5" min="0" step="0.1" style="width:90px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="100" min="0" max="100" style="width:80px;"></td>
+                <td><span class="source-tag db">📦 DB</span></td>
+              </tr>
+              <tr>
+                <td>GEN-003</td>
+                <td>天能風力發電廠</td>
+                <td>🌊 風力</td>
+                <td><input class="form-input" type="number" value="800" min="0" style="width:80px;"></td>
+                <td><input class="form-input" type="number" value="3.8" min="0" step="0.1" style="width:90px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="80" min="0" max="100" style="width:80px;"></td>
+                <td><span class="source-tag db">📦 DB</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">🏢 用電端 — 月上限 (Mni) & 年上限 (Yni)</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>電號</th>
+                <th>企業名稱</th>
+                <th>售電價</th>
+                <th>每月上限 (kWh)</th>
+                <th>每年上限 (kWh)</th>
+                <th>數據來源</th>
+              </tr>
+            </thead>
+            <tbody id="m2-usr-table-body">
+              <tr>
+                <td>USR-001</td>
+                <td>台積電竹科廠</td>
+                <td><input class="form-input" type="number" value="5.0" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="50000" style="width:100px;"></td>
+                <td><input class="form-input" type="number" value="500000" style="width:110px;"></td>
+                <td><span class="source-tag db">📦 DB</span></td>
+              </tr>
+              <tr>
+                <td>USR-002</td>
+                <td>聯華電子總部</td>
+                <td><input class="form-input" type="number" value="5.2" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="30000" style="width:100px;"></td>
+                <td><input class="form-input" type="number" value="300000" style="width:110px;"></td>
+                <td><span class="source-tag db">📦 DB</span></td>
+              </tr>
+              <tr>
+                <td>USR-003</td>
+                <td>全家便利商店A區</td>
+                <td><input class="form-input" type="number" value="5.5" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="15000" style="width:100px;"></td>
+                <td><input class="form-input" type="number" value="150000" style="width:110px;"></td>
+                <td><span class="source-tag db">📦 DB</span></td>
+              </tr>
+              <tr>
+                <td>USR-004</td>
+                <td>遠東百貨板橋店</td>
+                <td><input class="form-input" type="number" value="5.3" min="0" step="0.1" style="width:80px;"> 元/度</td>
+                <td><input class="form-input" type="number" value="25000" style="width:100px;"></td>
+                <td><input class="form-input" type="number" value="250000" style="width:110px;"></td>
+                <td><span class="source-tag db">📦 DB</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+          <button class="btn btn-outline" onclick="showM2Step(2)">← 上一步</button>
+          <button class="btn btn-primary" onclick="showM2Step(4)">下一步：確認輸入 →</button>
+        </div>
+      </div>
+
+      <!-- M2 Step 4: Confirm -->
+      <div class="m2-step" id="m2-step-4" style="display:none;">
+        <div class="banner green">
+          <h4>Step 4：確認輸入資料</h4>
+          <p>請確認以下設定是否正確，確認後系統將執行兩階段媒合結算。</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;">
+          <div class="card">
+            <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.5rem;">📅 計算範圍</h4>
+            <p style="font-size:0.875rem;">2025-01 ~ 2025-06（共 6 個月）</p>
+          </div>
+          <div class="card">
+            <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.5rem;">📊 數據規模</h4>
+            <p style="font-size:0.875rem;">發電端 3 個電號 × 用電端 4 個電號</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">🔋 發電端設定摘要</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>電號</th>
+                <th>案場</th>
+                <th>轉供比例</th>
+                <th>15分鐘資料</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>GEN-001</td>
+                <td>天能太陽能一廠</td>
+                <td>100%</td>
+                <td>✅ 已載入 (17,568 筆)</td>
+              </tr>
+              <tr>
+                <td>GEN-002</td>
+                <td>天能太陽能二廠</td>
+                <td>100%</td>
+                <td>✅ 已載入 (17,568 筆)</td>
+              </tr>
+              <tr>
+                <td>GEN-003</td>
+                <td>天能風力發電廠</td>
+                <td>80%</td>
+                <td>✅ 已載入 (17,568 筆)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">🏢 用電端設定摘要</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>電號</th>
+                <th>企業</th>
+                <th>月上限</th>
+                <th>年上限</th>
+                <th>15分鐘資料</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>USR-001</td>
+                <td>台積電竹科廠</td>
+                <td>50,000</td>
+                <td>500,000</td>
+                <td>✅ 已載入 (17,568 筆)</td>
+              </tr>
+              <tr>
+                <td>USR-002</td>
+                <td>聯華電子總部</td>
+                <td>30,000</td>
+                <td>300,000</td>
+                <td>✅ 已載入 (17,568 筆)</td>
+              </tr>
+              <tr>
+                <td>USR-003</td>
+                <td>全家便利商店A區</td>
+                <td>15,000</td>
+                <td>150,000</td>
+                <td>✅ 已載入 (17,568 筆)</td>
+              </tr>
+              <tr>
+                <td>USR-004</td>
+                <td>遠東百貨板橋店</td>
+                <td>25,000</td>
+                <td>250,000</td>
+                <td>✅ 已載入 (17,568 筆)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+          <button class="btn btn-outline" onclick="showM2Step(3)">← 修改設定</button>
+          <button class="btn btn-primary" style="flex:1;" onclick="runSettlement()">⚡ 確認無誤，執行兩階段媒合結算</button>
+        </div>
+      </div>
+
+      <!-- M2 Step 5: Results -->
+      <div class="m2-step" id="m2-step-5" style="display:none;">
+        <div class="banner green">
+          <h4>結算結果（2025-01 至 2025-06）</h4>
+          <p>以下為依台電規章計算之各月結算明細。</p>
+        </div>
+
+        <div class="flow-steps" style="margin-top:1rem;">
+          <div class="flow-step" style="background:#EEF2FF;border-color:var(--accent);">
+            <h5>第一階段合計</h5>
+            <p>15 分鐘即時媒合</p>
+            <p style="font-size:1.25rem;font-weight:700;color:var(--accent);margin-top:0.5rem;">1,710,000 kWh</p>
+          </div>
+          <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--text-tertiary);">→</div>
+          <div class="flow-step" style="background:#F5F3FF;border-color:#8B5CF6;">
+            <h5>第二階段合計</h5>
+            <p>同電價時段餘電再媒合</p>
+            <p style="font-size:1.25rem;font-weight:700;color:#8B5CF6;margin-top:0.5rem;">253,800 kWh</p>
+          </div>
+          <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--text-tertiary);">→</div>
+          <div class="flow-step" style="background:#F0FDF4;border-color:var(--success);">
+            <h5>總轉供量</h5>
+            <p>取整數（四捨五入）</p>
+            <p style="font-size:1.25rem;font-weight:700;color:var(--success);margin-top:0.5rem;">1,963,800 kWh</p>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric green">
+            <div class="m-label">總轉供量</div>
+            <div class="m-value">1,963,800</div>
+            <div class="m-sub">kWh（6個月合計）</div>
+          </div>
+          <div class="metric red">
+            <div class="m-label">發電端餘電 (Bmi)</div>
+            <div class="m-value">91,200</div>
+            <div class="m-sub">kWh</div>
+          </div>
+          <div class="metric purple">
+            <div class="m-label">用電端缺口 (Sni)</div>
+            <div class="m-value">547,800</div>
+            <div class="m-sub">kWh</div>
+          </div>
+        </div>
+
+        <!-- Monthly tabs -->
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="font-size:0.9375rem;font-weight:600;margin-bottom:0.75rem;">📅 各月結算明細</h4>
+          <div class="tabs" id="m2-month-tabs">
+            <div class="tab active" onclick="showM2Month(0)">1月</div>
+            <div class="tab" onclick="showM2Month(1)">2月</div>
+            <div class="tab" onclick="showM2Month(2)">3月</div>
+            <div class="tab" onclick="showM2Month(3)">4月</div>
+            <div class="tab" onclick="showM2Month(4)">5月</div>
+            <div class="tab" onclick="showM2Month(5)">6月</div>
+          </div>
+          <div id="m2-month-content"></div>
+        </div>
+
+        <div class="chart-wrap">
+          <h4>分時段轉供量統計（6個月合計）</h4><canvas id="chartSettle"></canvas>
+        </div>
+        <button class="btn btn-success btn-block" style="margin-top:1rem;" onclick="completeM2()">✓ 確認結算，進入最佳化</button>
+      </div>
+    </div>
+
+    <!-- MODULE 3 -->
+    <div class="page" id="page-m3">
+      <h1 class="page-header">🎯 模組三：轉供配置最佳化</h1>
+      <p class="page-subtitle">在數萬種發電-用電組合中，利用最佳化演算法找出最大化毛利的最佳配對方案。</p>
+
+      <div class="stepper">
+        <div class="st-item active" id="st1" onclick="showOptStep(1)">① 選擇範圍</div>
+        <span class="st-arrow">→</span>
+        <div class="st-item" id="st2" onclick="showOptStep(2)">② 設定約束</div>
+        <span class="st-arrow">→</span>
+        <div class="st-item" id="st3" onclick="showOptStep(3)">③ 確認輸入</div>
+        <span class="st-arrow">→</span>
+        <div class="st-item" id="st4" onclick="showOptStep(4)">④ 查看結果</div>
+      </div>
+
+      <!-- Step 1: Company Selection (with manual entry) -->
+      <div class="opt-step" id="opt-step-1">
+        <div class="banner">
+          <h4>Step 1：選擇參與優化的範圍</h4>
+          <p>勾選要參與本次優化的發電端與用電端。若企業不在資料庫中，可手動新增。已簽長約不能動的配對不選進來。</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+          <!-- Generator Side -->
+          <div>
+            <label class="form-label" style="margin-bottom:0.75rem;">🔋 發電端（勾選參與優化）</label>
+            <div class="check-list" style="grid-template-columns:1fr;" id="m3-gen-list">
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-001
+                天能太陽能一廠 500kW（收購價 4.2）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-002
+                天能太陽能二廠 300kW（收購價 4.5）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> ☀️ GEN-003
+                天能太陽能三廠 800kW（收購價 3.8）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> ☀️ GEN-004 天能太陽能四廠
+                200kW（收購價 4.8）<span class="source-tag db">📦 DB</span></label>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
+              onclick="toggleM3AddForm('gen')">➕ 手動新增發電端案場</button>
+            <div id="m3-add-gen-form"
+              style="display:none;margin-top:0.75rem;padding:1rem;background:#FEFCE8;border:1px solid #FDE68A;border-radius:var(--radius);">
+              <h5 style="font-size:0.8125rem;font-weight:600;margin:0 0 0.75rem;color:#92400E;">📝 新增發電端案場</h5>
+              <div style="display:grid;gap:0.5rem;">
+                <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">案場名稱</label><input
+                    class="form-input" type="text" placeholder="例：XX太陽能電廠" id="m3-new-gen-name"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">類型</label>
+                    <select class="form-input" id="m3-new-gen-type">
+                      <option value="☀️ 太陽能">☀️ 太陽能</option>
+                      <option value="🌊 風力">🌊 風力</option>
+                      <option value="💧 水力">💧 水力</option>
+                    </select>
+                  </div>
+                  <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">容量
+                      (kW)</label><input class="form-input" type="number" placeholder="500" id="m3-new-gen-cap"></div>
+                </div>
+                <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">收購價
+                    (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="4.2"
+                    id="m3-new-gen-price"></div>
+                <div class="form-group">
+                  <label style="font-size:0.75rem;color:var(--text-muted);">上傳發電時序資料 (15分鐘, CSV)</label>
+                  <div
+                    style="border:1.5px dashed var(--border);border-radius:var(--radius);padding:0.75rem;text-align:center;cursor:pointer;background:#FFFBEB;"
+                    onclick="this.querySelector('input').click()">
+                    <span style="font-size:0.8125rem;color:var(--text-muted);">📄 點擊上傳 .csv / .xlsx</span>
+                    <input type="file" accept=".csv,.xlsx" style="display:none;"
+                      onchange="this.parentElement.innerHTML='<span style=\'font-size:0.8125rem;color:#065F46;\'>✅ '+this.files[0].name+'</span>'">
+                  </div>
+                </div>
+                <button class="btn btn-primary" style="font-size:0.8125rem;" onclick="addM3Company('gen')">✓
+                  加入列表</button>
+              </div>
+            </div>
+          </div>
+          <!-- Consumer Side -->
+          <div>
+            <label class="form-label" style="margin-bottom:0.75rem;">🏢 用電端（勾選參與優化）</label>
+            <div class="check-list" style="grid-template-columns:1fr;" id="m3-usr-list">
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏭 USR-001
+                台積電竹科廠（售電價 5.0）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏢 USR-002
+                聯華電子總部（售電價 5.2）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏪 USR-003
+                全家便利商店A區（售電價 5.5）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item checked"><input type="checkbox" checked onchange="toggleCheck(this)"> 🏬 USR-004
+                遠東百貨板橋店（售電價 5.3）<span class="source-tag db">📦 DB</span></label>
+              <label class="check-item"><input type="checkbox" onchange="toggleCheck(this)"> 🏢 USR-005 辦公型（售電價 4.9）🔒
+                長約 <span class="source-tag db">📦 DB</span></label>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem;width:100%;font-size:0.8125rem;"
+              onclick="toggleM3AddForm('usr')">➕ 手動新增用電端企業</button>
+            <div id="m3-add-usr-form"
+              style="display:none;margin-top:0.75rem;padding:1rem;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius);">
+              <h5 style="font-size:0.8125rem;font-weight:600;margin:0 0 0.75rem;color:#1E40AF;">📝 新增用電端企業</h5>
+              <div style="display:grid;gap:0.5rem;">
+                <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">企業名稱</label><input
+                    class="form-input" type="text" placeholder="例：XX科技" id="m3-new-usr-name"></div>
+                <div class="form-group"><label style="font-size:0.75rem;color:var(--text-muted);">售電價
+                    (元/度)</label><input class="form-input" type="number" step="0.1" placeholder="5.0"
+                    id="m3-new-usr-price"></div>
+                <div class="form-group">
+                  <label style="font-size:0.75rem;color:var(--text-muted);">上傳用電時序資料 (15分鐘, CSV)</label>
+                  <div
+                    style="border:1.5px dashed var(--border);border-radius:var(--radius);padding:0.75rem;text-align:center;cursor:pointer;background:#EFF6FF;"
+                    onclick="this.querySelector('input').click()">
+                    <span style="font-size:0.8125rem;color:var(--text-muted);">📄 點擊上傳 .csv / .xlsx</span>
+                    <input type="file" accept=".csv,.xlsx" style="display:none;"
+                      onchange="this.parentElement.innerHTML='<span style=\'font-size:0.8125rem;color:#065F46;\'>✅ '+this.files[0].name+'</span>'">
+                  </div>
+                </div>
+                <button class="btn btn-primary" style="font-size:0.8125rem;" onclick="addM3Company('usr')">✓
+                  加入列表</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:1rem;" onclick="showOptStep(2)">下一步 →</button>
+      </div>
+
+      <!-- Step 2: Constraints -->
+      <div class="opt-step" id="opt-step-2" style="display:none;">
+        <div class="banner purple">
+          <h4>Step 2：設定約束條件</h4>
+          <p>設定保收量、保供量及電號綁定等約束。演算法會自動遵守這些限制。</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+          <div class="card">
+            <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">發電端約束</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>電號</th>
+                  <th>保收量(kWh)</th>
+                  <th>可拆分數</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>GEN-001</td>
+                  <td><input class="form-input" value="200000" style="width:100px;"></td>
+                  <td><input class="form-input" value="3" style="width:60px;"></td>
+                </tr>
+                <tr>
+                  <td>GEN-002</td>
+                  <td><input class="form-input" value="120000" style="width:100px;"></td>
+                  <td><input class="form-input" value="2" style="width:60px;"></td>
+                </tr>
+                <tr>
+                  <td>GEN-003</td>
+                  <td><input class="form-input" value="350000" style="width:100px;"></td>
+                  <td><input class="form-input" value="4" style="width:60px;"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">用電端約束</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>電號</th>
+                  <th>保供量(kWh)</th>
+                  <th>電號綁定模式</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>USR-001</td>
+                  <td><input class="form-input" value="300000" style="width:100px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option selected>獨立</option>
+                      <option>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                </tr>
+                <tr>
+                  <td>USR-002</td>
+                  <td><input class="form-input" value="150000" style="width:100px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option>獨立</option>
+                      <option selected>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                </tr>
+                <tr>
+                  <td>USR-003</td>
+                  <td><input class="form-input" value="80000" style="width:100px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option selected>獨立</option>
+                      <option>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                </tr>
+                <tr>
+                  <td>USR-004</td>
+                  <td><input class="form-input" value="120000" style="width:100px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option>獨立</option>
+                      <option selected>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+          <button class="btn btn-outline" onclick="showOptStep(1)">← 上一步</button>
+          <button class="btn btn-primary" onclick="showOptStep(3)">下一步：確認輸入 →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Confirm All Inputs (Editable) -->
+      <div class="opt-step" id="opt-step-3" style="display:none;">
+        <div class="banner" style="border-left-color:#F59E0B;">
+          <h4>Step 3：確認所有輸入</h4>
+          <p>請確認以下所有參與最佳化的案場與約束設定。數值仍可直接修改。</p>
+        </div>
+        <!-- Generator Confirmation Table -->
+        <div class="card" style="margin-bottom:1rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">🔋 發電端案場</h4>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>電號</th>
+                  <th>案場名稱</th>
+                  <th>類型</th>
+                  <th>容量(kW)</th>
+                  <th>收購價(元/度)</th>
+                  <th>保收量(kWh)</th>
+                  <th>可拆分數</th>
+                  <th>數據來源</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>GEN-001</td>
+                  <td>天能太陽能一廠</td>
+                  <td>☀️ 太陽能</td>
+                  <td><input class="form-input" type="number" value="500" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="4.2" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="200000" style="width:95px;"></td>
+                  <td><input class="form-input" type="number" value="3" style="width:55px;"></td>
+                  <td><span class="source-tag db">📦 DB</span></td>
+                </tr>
+                <tr>
+                  <td>GEN-002</td>
+                  <td>天能太陽能二廠</td>
+                  <td>☀️ 太陽能</td>
+                  <td><input class="form-input" type="number" value="300" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="4.5" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="120000" style="width:95px;"></td>
+                  <td><input class="form-input" type="number" value="2" style="width:55px;"></td>
+                  <td><span class="source-tag db">📦 DB</span></td>
+                </tr>
+                <tr>
+                  <td>GEN-003</td>
+                  <td>天能太陽能三廠</td>
+                  <td>☀️ 太陽能</td>
+                  <td><input class="form-input" type="number" value="800" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="3.8" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="350000" style="width:95px;"></td>
+                  <td><input class="form-input" type="number" value="4" style="width:55px;"></td>
+                  <td><span class="source-tag db">📦 DB</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Consumer Confirmation Table -->
+        <div class="card" style="margin-bottom:1rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">🏢 用電端企業</h4>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>電號</th>
+                  <th>企業名稱</th>
+                  <th>售電價(元/度)</th>
+                  <th>保供量(kWh)</th>
+                  <th>電號綁定模式</th>
+                  <th>數據來源</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>USR-001</td>
+                  <td>台積電竹科廠</td>
+                  <td><input class="form-input" type="number" value="5.0" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="300000" style="width:95px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option selected>獨立</option>
+                      <option>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                  <td><span class="source-tag db">📦 DB</span></td>
+                </tr>
+                <tr>
+                  <td>USR-002</td>
+                  <td>聯華電子總部</td>
+                  <td><input class="form-input" type="number" value="5.2" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="150000" style="width:95px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option>獨立</option>
+                      <option selected>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                  <td><span class="source-tag db">📦 DB</span></td>
+                </tr>
+                <tr>
+                  <td>USR-003</td>
+                  <td>全家便利商店A區</td>
+                  <td><input class="form-input" type="number" value="5.5" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="80000" style="width:95px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option selected>獨立</option>
+                      <option>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                  <td><span class="source-tag db">📦 DB</span></td>
+                </tr>
+                <tr>
+                  <td>USR-004</td>
+                  <td>遠東百貨板橋店</td>
+                  <td><input class="form-input" type="number" value="5.3" step="0.1" style="width:75px;"></td>
+                  <td><input class="form-input" type="number" value="120000" style="width:95px;"></td>
+                  <td><select class="form-input" style="width:120px;">
+                      <option>獨立</option>
+                      <option selected>同企業</option>
+                      <option>允許跨企業</option>
+                    </select></td>
+                  <td><span class="source-tag db">📦 DB</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div
+          style="padding:0.75rem 1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);margin-bottom:1rem;">
+          <p style="margin:0;font-size:0.8125rem;color:#92400E;">⚠️ 確認無誤後，點擊下方「開始最佳化」執行演算法。上方數值仍可直接修改。</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;">
+          <button class="btn btn-outline" onclick="showOptStep(2)">← 上一步</button>
+        </div>
+        <div class="card" style="text-align:center;padding:2rem;">
+          <div id="ga-idle">
+            <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1rem;">設定完成，點擊開始執行最佳化演算法</p>
+            <button class="btn btn-primary" onclick="runGA()">🚀 開始最佳化</button>
+          </div>
+          <div id="ga-running" style="display:none;">
+            <p style="font-size:0.875rem;font-weight:600;margin-bottom:0.5rem;">🔄 最佳化進行中...</p>
+            <div class="progress-bar">
+              <div class="progress-fill" id="ga-progress" style="width:0%;"></div>
+            </div>
+            <p style="font-size:0.75rem;color:var(--text-muted);" id="ga-status">初始化族群...</p>
+          </div>
+          <div id="ga-done" style="display:none;">
+            <p style="font-size:1.25rem;margin-bottom:0.5rem;">✅</p>
+            <p style="font-size:0.875rem;font-weight:600;color:var(--success-dark);">最佳化完成！找到最佳配對方案</p>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">共計算 500 代 × 100 族群，耗時 12.3 秒</p>
+            <button class="btn btn-success" style="margin-top:1rem;" onclick="showOptStep(4)">查看結果 →</button>
+          </div>
+        </div>
+        <div class="chart-wrap" id="ga-chart-wrap" style="display:none;">
+          <h4>GA 收斂曲線</h4><canvas id="chartGA"></canvas>
+        </div>
+      </div>
+
+      <!-- Step 4: Results (Optimized Only) -->
+      <div class="opt-step" id="opt-step-4" style="display:none;">
+        <div class="banner green">
+          <h4>Step 4：最佳化結果</h4>
+          <p>以下為演算法最佳化後的配對方案總覽與契約分配明細。</p>
+        </div>
+
+        <!-- Summary Metrics -->
+        <div class="metrics" style="grid-template-columns:repeat(5,1fr);margin-bottom:1.5rem;">
+          <div class="metric green" style="border-left-width:4px;">
+            <div class="m-label">總毛利</div>
+            <div class="m-value" style="color:var(--success);">$517,160</div>
+          </div>
+          <div class="metric green" style="border-left-width:4px;">
+            <div class="m-label">轉供量</div>
+            <div class="m-value">416,800</div>
+            <div class="m-sub">kWh</div>
+          </div>
+          <div class="metric" style="border-left-width:4px;">
+            <div class="m-label">餘電量</div>
+            <div class="m-value">5,200</div>
+            <div class="m-sub">kWh</div>
+          </div>
+          <div class="metric" style="border-left-width:4px;">
+            <div class="m-label">缺口量</div>
+            <div class="m-value">18,400</div>
+            <div class="m-sub">kWh</div>
+          </div>
+          <div class="metric" style="border-left-width:4px;">
+            <div class="m-label">契約數</div>
+            <div class="m-value">4</div>
+            <div class="m-sub">份</div>
+          </div>
+        </div>
+
+        <!-- Contract Allocation Details -->
+        <div class="card" style="margin-bottom:1rem;">
+          <h4 style="font-size:0.875rem;font-weight:600;margin-bottom:0.75rem;">📋 契約分配結果</h4>
+          <p style="font-size:0.8rem;color:#64748B;margin-bottom:0.75rem;">⚡ 一份契約可包含多個發電端或用電端的組合配對</p>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>契約</th>
+                  <th>發電端</th>
+                  <th>用電端</th>
+                  <th>轉供比例</th>
+                  <th>月上限 (kWh)</th>
+                  <th>年上限 (kWh)</th>
+                  <th>預估轉供量</th>
+                  <th>預估毛利</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- OPT-001: 1 Generator → 3 Consumers -->
+                <tr style="border-top:2px solid #E2E8F0;">
+                  <td rowspan="3"><strong style="color:#3B82F6;">OPT-001</strong><br><span
+                      style="font-size:0.7rem;color:#94A3B8;">1對3</span></td>
+                  <td rowspan="3">☀️ GEN-003 天能太陽能三廠<br><span style="font-size:0.75rem;color:#94A3B8;">800kW</span></td>
+                  <td>🏭 USR-001 台積電竹科廠</td>
+                  <td>45%</td>
+                  <td>12,000</td>
+                  <td>140,000</td>
+                  <td>126,000</td>
+                  <td style="color:var(--success);font-weight:600;">$151,200</td>
+                </tr>
+                <tr>
+                  <td>🏪 USR-003 全家便利商店A區</td>
+                  <td>30%</td>
+                  <td>8,000</td>
+                  <td>96,000</td>
+                  <td>84,000</td>
+                  <td style="color:var(--success);font-weight:600;">$142,800</td>
+                </tr>
+                <tr>
+                  <td>🏬 USR-004 遠東百貨板橋店</td>
+                  <td>25%</td>
+                  <td>7,000</td>
+                  <td>80,000</td>
+                  <td>70,000</td>
+                  <td style="color:var(--success);font-weight:600;">$105,000</td>
+                </tr>
+                <tr style="background:#F0FDF4;font-size:0.8rem;">
+                  <td colspan="3" style="text-align:right;font-weight:600;color:#64748B;">OPT-001 小計</td>
+                  <td style="font-weight:600;">100%</td>
+                  <td>27,000</td>
+                  <td>316,000</td>
+                  <td style="font-weight:600;">280,000</td>
+                  <td style="color:var(--success);font-weight:700;">$399,000</td>
+                </tr>
+
+                <!-- OPT-002: 2 Generators → 1 Consumer -->
+                <tr style="border-top:2px solid #E2E8F0;">
+                  <td rowspan="2"><strong style="color:#3B82F6;">OPT-002</strong><br><span
+                      style="font-size:0.7rem;color:#94A3B8;">2對1</span></td>
+                  <td>☀️ GEN-001 天能太陽能一廠<br><span style="font-size:0.75rem;color:#94A3B8;">500kW</span></td>
+                  <td rowspan="2">🏢 USR-002 聯華電子總部<br><span style="font-size:0.75rem;color:#94A3B8;">售電價 5.2</span>
+                  </td>
+                  <td>60%</td>
+                  <td>4,000</td>
+                  <td>48,000</td>
+                  <td>42,000</td>
+                  <td style="color:var(--success);font-weight:600;">$33,600</td>
+                </tr>
+                <tr>
+                  <td>☀️ GEN-002 天能太陽能二廠<br><span style="font-size:0.75rem;color:#94A3B8;">300kW</span></td>
+                  <td>40%</td>
+                  <td>2,500</td>
+                  <td>28,000</td>
+                  <td>18,000</td>
+                  <td style="color:var(--success);font-weight:600;">$12,600</td>
+                </tr>
+                <tr style="background:#F0FDF4;font-size:0.8rem;">
+                  <td colspan="3" style="text-align:right;font-weight:600;color:#64748B;">OPT-002 小計</td>
+                  <td style="font-weight:600;">100%</td>
+                  <td>6,500</td>
+                  <td>76,000</td>
+                  <td style="font-weight:600;">60,000</td>
+                  <td style="color:var(--success);font-weight:700;">$46,200</td>
+                </tr>
+
+                <!-- OPT-003: 1:1 Simple -->
+                <tr style="border-top:2px solid #E2E8F0;">
+                  <td><strong style="color:#3B82F6;">OPT-003</strong><br><span
+                      style="font-size:0.7rem;color:#94A3B8;">1對1</span></td>
+                  <td>☀️ GEN-001 天能太陽能一廠<br><span style="font-size:0.75rem;color:#94A3B8;">500kW</span></td>
+                  <td>🏭 USR-001 台積電竹科廠</td>
+                  <td>40%</td>
+                  <td>3,000</td>
+                  <td>32,000</td>
+                  <td>28,000</td>
+                  <td style="color:var(--success);font-weight:600;">$22,400</td>
+                </tr>
+
+                <!-- OPT-004: 2 Generators → 2 Consumers -->
+                <tr style="border-top:2px solid #E2E8F0;">
+                  <td rowspan="4"><strong style="color:#3B82F6;">OPT-004</strong><br><span
+                      style="font-size:0.7rem;color:#94A3B8;">2對2</span></td>
+                  <td rowspan="2">☀️ GEN-002 天能太陽能二廠<br><span style="font-size:0.75rem;color:#94A3B8;">300kW</span></td>
+                  <td>🏪 USR-003 全家便利商店A區</td>
+                  <td>35%</td>
+                  <td>2,000</td>
+                  <td>22,000</td>
+                  <td>16,800</td>
+                  <td style="color:var(--success);font-weight:600;">$20,160</td>
+                </tr>
+                <tr>
+                  <td>🏬 USR-004 遠東百貨板橋店</td>
+                  <td>25%</td>
+                  <td>1,500</td>
+                  <td>16,000</td>
+                  <td>10,000</td>
+                  <td style="color:var(--success);font-weight:600;">$7,000</td>
+                </tr>
+                <tr>
+                  <td rowspan="2">☀️ GEN-001 天能太陽能一廠<br><span style="font-size:0.75rem;color:#94A3B8;">500kW 剩餘</span>
+                  </td>
+                  <td>🏪 USR-003 全家便利商店A區</td>
+                  <td>25%</td>
+                  <td>1,800</td>
+                  <td>20,000</td>
+                  <td>14,000</td>
+                  <td style="color:var(--success);font-weight:600;">$16,800</td>
+                </tr>
+                <tr>
+                  <td>🏬 USR-004 遠東百貨板橋店</td>
+                  <td>15%</td>
+                  <td>1,200</td>
+                  <td>12,000</td>
+                  <td>8,000</td>
+                  <td style="color:var(--success);font-weight:600;">$5,600</td>
+                </tr>
+                <tr style="background:#F0FDF4;font-size:0.8rem;">
+                  <td colspan="3" style="text-align:right;font-weight:600;color:#64748B;">OPT-004 小計</td>
+                  <td style="font-weight:600;">100%</td>
+                  <td>6,500</td>
+                  <td>70,000</td>
+                  <td style="font-weight:600;">48,800</td>
+                  <td style="color:var(--success);font-weight:700;">$49,560</td>
+                </tr>
+
+                <!-- Grand Total -->
+                <tr style="font-weight:700;background:#DBEAFE;border-top:3px solid #3B82F6;">
+                  <td colspan="6">📊 總計（4 份契約）</td>
+                  <td>416,800</td>
+                  <td style="color:var(--success);">$517,160</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;">
+          <button class="btn btn-outline" onclick="showOptStep(1)">← 重新設定</button>
+          <button class="btn btn-primary" onclick="alert('📥 已匯出最佳化結果報告 (PDF)')">📥 匯出報告</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Navigation
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + id).classList.add('active');
+      document.querySelectorAll('.nav-step').forEach(n => n.classList.remove('active'));
+      const navMap = { m1: 0, m2: 1, m3: 2 };
+      if (navMap[id] !== undefined) {
+        document.querySelectorAll('.nav-step')[navMap[id]].classList.add('active');
+      }
+      window.scrollTo(0, 0);
+    }
+
+    // Module 1: Step navigation
+    function selectUserType(card, type) {
+      document.querySelectorAll('.type-card').forEach(c => {
+        c.classList.remove('selected');
+        c.querySelector('.radio-text').textContent = '選擇';
+      });
+      card.classList.add('selected');
+      card.querySelector('.radio-text').textContent = '已選擇';
+      document.getElementById('userType').value = type;
+    }
+
+    function handleM1Upload(input) {
+      if (input.files.length > 0) {
+        document.getElementById('m1-filename').textContent = input.files[0].name;
+        document.getElementById('m1-file-info').style.display = 'block';
+        document.getElementById('m1-dropzone').style.borderColor = 'var(--success)';
+        // Simulate auto-parsing the uploaded file
+        document.getElementById('m1-parsed-info').style.display = 'block';
+      }
+    }
+    function showM1Step2() {
+      document.getElementById('m1-step1').style.display = 'none';
+      document.getElementById('m1-step2').style.display = 'block';
+    }
+    function backToM1Step1() {
+      document.getElementById('m1-step2').style.display = 'none';
+      document.getElementById('m1-step1').style.display = 'block';
+    }
+    function exportTimeSeries() {
+      alert('📥 已匯出 35,040 筆 15 分鐘時序資料（CSV 格式）\n可將此檔案匯入資料庫。');
+    }
+
+    // Module 1: Simulation — generate full-year 35,040 data points
+    function runSimulation() {
+      // Auto-parsed values from uploaded file (simulated)
+      const peak = 15000;
+      const mid = 12000;
+      const off = 8000;
+      const total = peak + mid + off;
+      document.getElementById('avgKwh').textContent = total.toLocaleString();
+      document.getElementById('peakRatio').textContent = Math.round(peak / total * 100) + '%';
+      document.getElementById('sim-result').style.display = 'block';
+
+      const type = document.getElementById('userType').value;
+
+      // Daily profile templates (96 points per day)
+      const dailyProfile = {
+        '24h': (i) => 0.85 + Math.random() * 0.3,
+        'office': (i) => (i >= 32 && i <= 68) ? 0.65 + Math.random() * 0.55 : 0.08 + Math.random() * 0.12,
+        'store': (i) => (i >= 28 && i <= 84) ? 0.55 + Math.random() * 0.45 : 0.12 + Math.random() * 0.1,
+        'mall': (i) => (i >= 40 && i <= 88) ? 0.45 + Math.random() * 0.65 : 0.08 + Math.random() * 0.12,
+      };
+
+      // Seasonal multiplier (summer months higher)
+      const seasonFactor = (month) => {
+        const factors = [0.85, 0.82, 0.88, 0.92, 1.0, 1.15, 1.25, 1.22, 1.1, 0.95, 0.88, 0.85];
+        return factors[month];
+      };
+
+      // Generate 35,040 data points (365 days × 96 intervals)
+      const startDate = new Date(2025, 0, 1);
+      const chartData = [];
+      const chartLabels = [];
+      const profFn = dailyProfile[type];
+      const dailyBase = total / 96;
+
+      for (let day = 0; day < 365; day++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + day);
+        const month = date.getMonth();
+        const dayOfWeek = date.getDay();
+        const sFactor = seasonFactor(month);
+        // Weekend adjustment
+        const wFactor = (type === 'office') ? (dayOfWeek === 0 || dayOfWeek === 6 ? 0.25 : 1.0) :
+          (type === 'mall') ? (dayOfWeek === 0 || dayOfWeek === 6 ? 1.3 : 1.0) : 1.0;
+
+        for (let interval = 0; interval < 96; interval++) {
+          const t = new Date(date);
+          t.setMinutes(interval * 15);
+          chartLabels.push(t);
+          const val = profFn(interval) * dailyBase * sFactor * wFactor * (0.85 + Math.random() * 0.3);
+          chartData.push(Math.round(val * 100) / 100);
+        }
+      }
+
+      // Store for zoom range functions
+      window._loadChartStart = startDate;
+
+      const ctx = document.getElementById('chartLoad').getContext('2d');
+      if (window.loadChart) window.loadChart.destroy();
+      window.loadChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: '用電量 (kWh)',
+            data: chartData,
+            borderColor: '#F97316',
+            backgroundColor: 'rgba(249,115,22,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 1.5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const d = items[0].label;
+                  return d;
+                },
+                label: (item) => `用電量: ${Number(item.raw).toFixed(1)} kWh`
+              }
+            },
+            zoom: {
+              pan: { enabled: true, mode: 'x', modifierKey: null },
+              zoom: {
+                wheel: { enabled: true },
+                pinch: { enabled: true },
+                drag: { enabled: false },
+                mode: 'x'
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'month',
+                displayFormats: { hour: 'HH:mm', day: 'M/d', week: 'M/d', month: 'yyyy-MM' }
+              },
+              grid: { display: false },
+              ticks: { maxTicksLimit: 13, font: { size: 10 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: '#F1F5F9' },
+              title: { display: true, text: 'kWh', font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    function zoomLoadChart(range) {
+      if (!window.loadChart) return;
+      const start = new Date(window._loadChartStart);
+      let end;
+      switch (range) {
+        case '1d': end = new Date(start); end.setDate(end.getDate() + 1); break;
+        case '1w': end = new Date(start); end.setDate(end.getDate() + 7); break;
+        case '1m': end = new Date(start); end.setMonth(end.getMonth() + 1); break;
+        case 'all': resetLoadChartZoom(); return;
+      }
+      window.loadChart.options.scales.x.min = start.getTime();
+      window.loadChart.options.scales.x.max = end.getTime();
+      // Adjust time unit based on range
+      if (range === '1d') window.loadChart.options.scales.x.time.unit = 'hour';
+      else if (range === '1w') window.loadChart.options.scales.x.time.unit = 'day';
+      else if (range === '1m') window.loadChart.options.scales.x.time.unit = 'day';
+      window.loadChart.update();
+    }
+
+    function resetLoadChartZoom() {
+      if (!window.loadChart) return;
+      window.loadChart.resetZoom();
+      window.loadChart.options.scales.x.min = undefined;
+      window.loadChart.options.scales.x.max = undefined;
+      window.loadChart.options.scales.x.time.unit = 'month';
+      window.loadChart.update();
+    }
+
+    function completeM1() {
+      document.getElementById('nav-m1').classList.add('done');
+      document.getElementById('nav-m1-circle').className = 'circle done';
+      document.getElementById('nav-m1-circle').textContent = '✓';
+      document.getElementById('nav-m1-status').textContent = '✓ 完成';
+      showPage('m2');
+    }
+
+    // Module 2: Step navigation
+    function showM2Step(n) {
+      document.querySelectorAll('.m2-step').forEach(s => s.style.display = 'none');
+      document.getElementById('m2-step-' + n).style.display = 'block';
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById('m2s' + i);
+        el.className = 'st-item' + (i === n ? ' active' : (i < n ? ' done' : ''));
+      }
+      window.scrollTo(0, 0);
+    }
+    function toggleCheck(cb) { cb.closest('.check-item').classList.toggle('checked', cb.checked); }
+
+    // M2 Manual Company Entry
+    let m2GenCounter = 5, m2UsrCounter = 5;
+    function toggleM2AddForm(type) {
+      const form = document.getElementById('m2-add-' + type + '-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+    function addManualCompany(type) {
+      if (type === 'gen') {
+        const name = document.getElementById('m2-new-gen-name').value || '新發電端企業';
+        const genType = document.getElementById('m2-new-gen-type').value;
+        const cap = document.getElementById('m2-new-gen-cap').value || '0';
+        const price = document.getElementById('m2-new-gen-price').value || '0';
+        const ratio = document.getElementById('m2-new-gen-ratio').value || '100';
+        const id = 'GEN-' + String(m2GenCounter++).padStart(3, '0');
+        // Add to check list
+        const list = document.getElementById('m2-gen-list');
+        const label = document.createElement('label');
+        label.className = 'check-item checked';
+        label.innerHTML = '<input type="checkbox" checked onchange="toggleCheck(this)"> ' + genType.split(' ')[0] + ' ' + name + ' (' + id + ', ' + cap + 'kW) <span class="source-tag manual">📤 手動上傳</span>';
+        list.appendChild(label);
+        // Add to Step 3 table
+        const tbody = document.getElementById('m2-gen-table-body');
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + id + '</td><td>' + name + '</td><td>' + genType + '</td>' +
+          '<td><input class="form-input" type="number" value="' + cap + '" min="0" style="width:80px;"></td>' +
+          '<td><input class="form-input" type="number" value="' + price + '" min="0" step="0.1" style="width:90px;"> 元/度</td>' +
+          '<td><input class="form-input" type="number" value="' + ratio + '" min="0" max="100" style="width:80px;"></td>' +
+          '<td><span class="source-tag manual">📤 手動上傳</span></td>';
+        tbody.appendChild(tr);
+        // Reset form
+        document.getElementById('m2-new-gen-name').value = '';
+        document.getElementById('m2-new-gen-cap').value = '';
+        document.getElementById('m2-new-gen-price').value = '';
+        document.getElementById('m2-add-gen-form').style.display = 'none';
+      } else {
+        const name = document.getElementById('m2-new-usr-name').value || '新用電端企業';
+        const price = document.getElementById('m2-new-usr-price').value || '0';
+        const mlimit = document.getElementById('m2-new-usr-mlimit').value || '0';
+        const ylimit = document.getElementById('m2-new-usr-ylimit').value || '0';
+        const id = 'USR-' + String(m2UsrCounter++).padStart(3, '0');
+        // Add to check list
+        const list = document.getElementById('m2-usr-list');
+        const label = document.createElement('label');
+        label.className = 'check-item checked';
+        label.innerHTML = '<input type="checkbox" checked onchange="toggleCheck(this)"> 🏢 ' + name + ' (' + id + ') <span class="source-tag manual">📤 手動上傳</span>';
+        list.appendChild(label);
+        // Add to Step 3 table
+        const tbody = document.getElementById('m2-usr-table-body');
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + id + '</td><td>' + name + '</td>' +
+          '<td><input class="form-input" type="number" value="' + price + '" min="0" step="0.1" style="width:80px;"> 元/度</td>' +
+          '<td><input class="form-input" type="number" value="' + mlimit + '" style="width:100px;"></td>' +
+          '<td><input class="form-input" type="number" value="' + ylimit + '" style="width:110px;"></td>' +
+          '<td><span class="source-tag manual">📤 手動上傳</span></td>';
+        tbody.appendChild(tr);
+        // Reset form
+        document.getElementById('m2-new-usr-name').value = '';
+        document.getElementById('m2-new-usr-price').value = '';
+        document.getElementById('m2-new-usr-mlimit').value = '';
+        document.getElementById('m2-new-usr-ylimit').value = '';
+        document.getElementById('m2-add-usr-form').style.display = 'none';
+      }
+    }
+
+    // M2 monthly mock data
+    const m2MonthData = [
+      { month: '2025-01', p1: 280000, p2: 41000, total: 321000, surplus: 14500, shortage: 89000, peak: 107000, midpeak: 92000, offpeak: 88000, satmid: 34000 },
+      { month: '2025-02', p1: 265000, p2: 39200, total: 304200, surplus: 15800, shortage: 95800, peak: 101000, midpeak: 87000, offpeak: 83000, satmid: 33200 },
+      { month: '2025-03', p1: 295000, p2: 44000, total: 339000, surplus: 13200, shortage: 81000, peak: 113000, midpeak: 97000, offpeak: 92000, satmid: 37000 },
+      { month: '2025-04', p1: 290000, p2: 43500, total: 333500, surplus: 14800, shortage: 86500, peak: 111000, midpeak: 95000, offpeak: 90500, satmid: 37000 },
+      { month: '2025-05', p1: 300000, p2: 45100, total: 345100, surplus: 16200, shortage: 94900, peak: 115000, midpeak: 99000, offpeak: 93000, satmid: 38100 },
+      { month: '2025-06', p1: 280000, p2: 41000, total: 321000, surplus: 16700, shortage: 100600, peak: 107000, midpeak: 92000, offpeak: 88000, satmid: 34000 },
+    ];
+
+    function showM2Month(idx) {
+      document.querySelectorAll('#m2-month-tabs .tab').forEach((t, i) => t.className = 'tab' + (i === idx ? ' active' : ''));
+      const d = m2MonthData[idx];
+      document.getElementById('m2-month-content').innerHTML = `
+    <div class="metrics" style="margin:0.75rem 0;">
+      <div class="metric"><div class="m-label">Phase 1 媒合量</div><div class="m-value">${d.p1.toLocaleString()}</div><div class="m-sub">kWh</div></div>
+      <div class="metric purple"><div class="m-label">Phase 2 媒合量</div><div class="m-value">${d.p2.toLocaleString()}</div><div class="m-sub">kWh</div></div>
+      <div class="metric green"><div class="m-label">總轉供量</div><div class="m-value">${d.total.toLocaleString()}</div><div class="m-sub">kWh</div></div>
+      <div class="metric red"><div class="m-label">發電端餘電 (Bmi)</div><div class="m-value">${d.surplus.toLocaleString()}</div><div class="m-sub">kWh</div></div>
+      <div class="metric purple"><div class="m-label">用電端缺口 (Sni)</div><div class="m-value">${d.shortage.toLocaleString()}</div><div class="m-sub">kWh</div></div>
+    </div>
+    <h5 style="font-size:0.8125rem;font-weight:600;margin:0.75rem 0 0.5rem;">分時段統計</h5>
+    <table><thead><tr><th>時段</th><th>轉供量 (kWh)</th></tr></thead><tbody>
+      <tr><td>尖峰</td><td>${d.peak.toLocaleString()}</td></tr>
+      <tr><td>半尖峰</td><td>${d.midpeak.toLocaleString()}</td></tr>
+      <tr><td>離峰</td><td>${d.offpeak.toLocaleString()}</td></tr>
+      <tr><td>週六半尖峰</td><td>${d.satmid.toLocaleString()}</td></tr>
+      <tr style="font-weight:600;background:#F8FAFC;"><td>合計</td><td>${d.total.toLocaleString()}</td></tr>
+    </tbody></table>
+  `;
+    }
+
+    function runSettlement() {
+      showM2Step(5);
+      showM2Month(0);
+
+      const ctx = document.getElementById('chartSettle').getContext('2d');
+      if (window.settleChart) window.settleChart.destroy();
+      const months = m2MonthData.map(d => d.month.slice(5) + '月');
+      window.settleChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [
+            { label: 'Phase 1', data: m2MonthData.map(d => d.p1), backgroundColor: '#6366F1' },
+            { label: 'Phase 2', data: m2MonthData.map(d => d.p2), backgroundColor: '#8B5CF6' }
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { grid: { display: false }, stacked: true }, y: { beginAtZero: true, grid: { color: '#F1F5F9' }, stacked: true } } }
+      });
+    }
+
+    function completeM2() {
+      document.getElementById('nav-m2').classList.add('done');
+      document.getElementById('nav-m2-circle').className = 'circle done';
+      document.getElementById('nav-m2-circle').textContent = '✓';
+      document.getElementById('nav-m2-status').textContent = '✓ 完成';
+      showPage('m3');
+    }
+
+    // Module 3: Optimization Steps
+    function showOptStep(n) {
+      document.querySelectorAll('.opt-step').forEach(s => s.style.display = 'none');
+      document.getElementById('opt-step-' + n).style.display = 'block';
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById('st' + i);
+        el.className = 'st-item' + (i === n ? ' active' : (i < n ? ' done' : ''));
+      }
+    }
+
+    function runGA() {
+      document.getElementById('ga-idle').style.display = 'none';
+      document.getElementById('ga-running').style.display = 'block';
+      const bar = document.getElementById('ga-progress');
+      const status = document.getElementById('ga-status');
+      const msgs = ['初始化族群 (100 個體)...', '第 50 代 - 適應度: 2.85M...', '第 150 代 - 適應度: 2.95M...', '第 300 代 - 適應度: 3.08M...', '第 450 代 - 適應度: 3.12M...', '第 500 代 - 收斂完成！最佳適應度: 3.13M'];
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        const pct = Math.min(step * 18, 100);
+        bar.style.width = pct + '%';
+        if (step - 1 < msgs.length) status.textContent = msgs[step - 1];
+        if (pct >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            document.getElementById('ga-running').style.display = 'none';
+            document.getElementById('ga-done').style.display = 'block';
+            document.getElementById('ga-chart-wrap').style.display = 'block';
+            drawGAChart();
+          }, 400);
+        }
+      }, 500);
+    }
+
+    function drawGAChart() {
+      const ctx = document.getElementById('chartGA').getContext('2d');
+      const gens = Array.from({ length: 50 }, (_, i) => (i + 1) * 10);
+      const fitness = gens.map(g => 2800000 + 328500 * (1 - Math.exp(-g / 150)) + (Math.random() - 0.5) * 20000);
+      if (window.gaChart) window.gaChart.destroy();
+      window.gaChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: gens.map(g => 'Gen ' + g), datasets: [{ label: '最佳適應度 (毛利)', data: fitness, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 1, borderWidth: 2 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } }, y: { beginAtZero: false, grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + Math.round(v / 1000) + 'K' } } } }
+      });
+    }
+
+    // Module 3: Manual company entry
+    let m3GenCounter = 5;
+    let m3UsrCounter = 6;
+
+    function toggleM3AddForm(type) {
+      const form = document.getElementById('m3-add-' + type + '-form');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function addM3Company(type) {
+      if (type === 'gen') {
+        const name = document.getElementById('m3-new-gen-name').value.trim();
+        const genType = document.getElementById('m3-new-gen-type').value;
+        const cap = document.getElementById('m3-new-gen-cap').value || '500';
+        const price = document.getElementById('m3-new-gen-price').value || '4.0';
+        if (!name) { alert('請輸入案場名稱'); return; }
+        const id = 'GEN-' + String(m3GenCounter++).padStart(3, '0');
+        const emoji = genType.split(' ')[0];
+        const list = document.getElementById('m3-gen-list');
+        const lbl = document.createElement('label');
+        lbl.className = 'check-item checked';
+        lbl.innerHTML = '<input type="checkbox" checked onchange="toggleCheck(this)"> ' + emoji + ' ' + id + ' ' + name + ' ' + cap + 'kW（收購價 ' + price + '）<span class="source-tag manual">📤 手動上傳</span>';
+        list.appendChild(lbl);
+        // Reset form
+        document.getElementById('m3-new-gen-name').value = '';
+        document.getElementById('m3-new-gen-cap').value = '';
+        document.getElementById('m3-new-gen-price').value = '';
+        document.getElementById('m3-add-gen-form').style.display = 'none';
+      } else {
+        const name = document.getElementById('m3-new-usr-name').value.trim();
+        const price = document.getElementById('m3-new-usr-price').value || '5.0';
+        if (!name) { alert('請輸入企業名稱'); return; }
+        const id = 'USR-' + String(m3UsrCounter++).padStart(3, '0');
+        const list = document.getElementById('m3-usr-list');
+        const lbl = document.createElement('label');
+        lbl.className = 'check-item checked';
+        lbl.innerHTML = '<input type="checkbox" checked onchange="toggleCheck(this)"> 🏢 ' + id + ' ' + name + '（售電價 ' + price + '）<span class="source-tag manual">📤 手動上傳</span>';
+        list.appendChild(lbl);
+        // Reset form
+        document.getElementById('m3-new-usr-name').value = '';
+        document.getElementById('m3-new-usr-price').value = '';
+        document.getElementById('m3-add-usr-form').style.display = 'none';
+      }
+    }
+
+    // Checkbox toggle styling
+    document.querySelectorAll('.check-item input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => cb.closest('.check-item').classList.toggle('checked', cb.checked));
+    });
+  </script>
+</body>
+
+</html>
