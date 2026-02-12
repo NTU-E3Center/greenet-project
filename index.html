@@ -911,10 +911,12 @@
       <div class="card" style="margin-bottom:1.5rem;" id="m1-step1">
         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
           <div class="circle active" style="width:2rem;height:2rem;font-size:0.8rem;">1</div>
-          <div>
+          <div style="flex:1;">
             <h3 style="font-size:1rem;font-weight:600;margin:0;">Step 1：輸入用電數據</h3>
             <p style="font-size:0.8125rem;color:var(--text-muted);margin:0;">請填入過去 12 個月的尖峰、半尖峰、離峰電費金額（元）</p>
           </div>
+          <button class="btn btn-outline" style="font-size:0.75rem;padding:0.375rem 0.75rem;white-space:nowrap;"
+            onclick="fillM1Example()">📝 填入範例</button>
         </div>
         <div style="overflow-x:auto;">
           <table class="m1-input-table" style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
@@ -1092,7 +1094,6 @@
         </div>
         <div style="display:flex;gap:0.75rem;">
           <button class="btn btn-outline" style="flex:1;" onclick="exportTimeSeries()">📥 匯出時序資料（存入資料庫）</button>
-          <button class="btn btn-success" style="flex:1;" onclick="completeM1()">✓ 確認數據，進入下一步</button>
         </div>
       </div>
     </div>
@@ -2192,6 +2193,33 @@
       document.getElementById('m1-total-mid').textContent = totalMid.toLocaleString();
       document.getElementById('m1-total-off').textContent = totalOff.toLocaleString();
       document.getElementById('m1-total-all').textContent = (totalPeak + totalMid + totalOff).toLocaleString();
+    }
+
+    function fillM1Example() {
+      const exampleData = [
+        { month: '2025-01', peak: 185000, mid: 142000, off: 98000 },
+        { month: '2025-02', peak: 172000, mid: 135000, off: 91000 },
+        { month: '2025-03', peak: 195000, mid: 148000, off: 103000 },
+        { month: '2025-04', peak: 210000, mid: 158000, off: 112000 },
+        { month: '2025-05', peak: 238000, mid: 175000, off: 125000 },
+        { month: '2025-06', peak: 265000, mid: 195000, off: 138000 },
+        { month: '2025-07', peak: 285000, mid: 210000, off: 148000 },
+        { month: '2025-08', peak: 278000, mid: 205000, off: 145000 },
+        { month: '2025-09', peak: 245000, mid: 180000, off: 128000 },
+        { month: '2025-10', peak: 215000, mid: 162000, off: 115000 },
+        { month: '2025-11', peak: 192000, mid: 145000, off: 100000 },
+        { month: '2025-12', peak: 188000, mid: 140000, off: 96000 }
+      ];
+      const rows = document.querySelectorAll('#m1-input-tbody tr');
+      rows.forEach((row, i) => {
+        if (exampleData[i]) {
+          row.querySelector('.m1-month').value = exampleData[i].month;
+          row.querySelector('.m1-peak').value = exampleData[i].peak;
+          row.querySelector('.m1-mid').value = exampleData[i].mid;
+          row.querySelector('.m1-off').value = exampleData[i].off;
+        }
+      });
+      updateM1Totals();
     }
 
 
