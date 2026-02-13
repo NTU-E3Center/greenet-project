@@ -861,7 +861,7 @@
     <div class="nav-step" id="nav-m3" onclick="showPage('m3')">
       <div style="flex:1">
         <div class="step-title">M3：轉供最佳化</div>
-        <div class="step-desc">AI 輔助決策</div>
+        <div class="step-desc">找出最適轉供方案</div>
       </div>
     </div>
 
@@ -1467,9 +1467,10 @@
       <div class="m2-step" id="m2-step-5" style="display:none;">
         <div class="banner green">
           <h4>結算結果（2025-01 至 2025-06）</h4>
-          <p>以下為依台電規章計算之各月結算明細。</p>
+          <p>以下為依台電規章計算之各月結算明細，包含各發電端與用電端的兩階段轉供量及毛利分析。</p>
         </div>
 
+        <!-- Overall Flow -->
         <div class="flow-steps" style="margin-top:1rem;">
           <div class="flow-step" style="background:#EEF2FF;border-color:var(--accent);">
             <h5>第一階段合計</h5>
@@ -1490,11 +1491,17 @@
           </div>
         </div>
 
+        <!-- KPI Metrics -->
         <div class="metrics">
           <div class="metric green">
             <div class="m-label">總轉供量</div>
             <div class="m-value">1,963,800</div>
             <div class="m-sub">kWh（6個月合計）</div>
+          </div>
+          <div class="metric" style="border-left:3px solid #F59E0B;">
+            <div class="m-label">總毛利</div>
+            <div class="m-value" style="color:#D97706;">$1,963,800</div>
+            <div class="m-sub">元（售電收入 − 收購成本）</div>
           </div>
           <div class="metric red">
             <div class="m-label">發電端餘電 (Bmi)</div>
@@ -1508,6 +1515,149 @@
           </div>
         </div>
 
+        <!-- Generator Breakdown Table -->
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="font-size:0.9375rem;font-weight:600;margin-bottom:0.75rem;">🔋 各發電端結算明細（6個月合計）</h4>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>電號</th>
+                  <th>案場名稱</th>
+                  <th>收購價 (元/度)</th>
+                  <th style="background:#EEF2FF;color:var(--accent);">第一階段 (kWh)</th>
+                  <th style="background:#F5F3FF;color:#8B5CF6;">第二階段 (kWh)</th>
+                  <th style="background:#F0FDF4;color:var(--success);">總轉供量 (kWh)</th>
+                  <th>餘電量 (kWh)</th>
+                  <th style="background:#FFFBEB;color:#D97706;">收購成本 (元)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>GEN-001</td>
+                  <td>天能太陽能一廠</td>
+                  <td style="text-align:center;">4.20</td>
+                  <td style="text-align:right;color:var(--accent);font-weight:500;">580,000</td>
+                  <td style="text-align:right;color:#8B5CF6;font-weight:500;">86,200</td>
+                  <td style="text-align:right;color:var(--success);font-weight:600;">666,200</td>
+                  <td style="text-align:right;color:#DC2626;">28,800</td>
+                  <td style="text-align:right;color:#D97706;font-weight:500;">$2,798,040</td>
+                </tr>
+                <tr>
+                  <td>GEN-002</td>
+                  <td>天能太陽能二廠</td>
+                  <td style="text-align:center;">4.50</td>
+                  <td style="text-align:right;color:var(--accent);font-weight:500;">350,000</td>
+                  <td style="text-align:right;color:#8B5CF6;font-weight:500;">52,000</td>
+                  <td style="text-align:right;color:var(--success);font-weight:600;">402,000</td>
+                  <td style="text-align:right;color:#DC2626;">18,000</td>
+                  <td style="text-align:right;color:#D97706;font-weight:500;">$1,809,000</td>
+                </tr>
+                <tr>
+                  <td>GEN-003</td>
+                  <td>天能太陽能三廠</td>
+                  <td style="text-align:center;">3.80</td>
+                  <td style="text-align:right;color:var(--accent);font-weight:500;">780,000</td>
+                  <td style="text-align:right;color:#8B5CF6;font-weight:500;">115,600</td>
+                  <td style="text-align:right;color:var(--success);font-weight:600;">895,600</td>
+                  <td style="text-align:right;color:#DC2626;">44,400</td>
+                  <td style="text-align:right;color:#D97706;font-weight:500;">$3,403,280</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr style="font-weight:700;background:#F8FAFC;">
+                  <td colspan="3" style="text-align:right;">合計</td>
+                  <td style="text-align:right;color:var(--accent);">1,710,000</td>
+                  <td style="text-align:right;color:#8B5CF6;">253,800</td>
+                  <td style="text-align:right;color:var(--success);">1,963,800</td>
+                  <td style="text-align:right;color:#DC2626;">91,200</td>
+                  <td style="text-align:right;color:#D97706;">$8,010,320</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Consumer Breakdown Table -->
+        <div class="card" style="margin-top:1rem;">
+          <h4 style="font-size:0.9375rem;font-weight:600;margin-bottom:0.75rem;">🏢 各用電端結算明細（6個月合計）</h4>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>電號</th>
+                  <th>企業名稱</th>
+                  <th>售電價 (元/度)</th>
+                  <th style="background:#EEF2FF;color:var(--accent);">第一階段 (kWh)</th>
+                  <th style="background:#F5F3FF;color:#8B5CF6;">第二階段 (kWh)</th>
+                  <th style="background:#F0FDF4;color:var(--success);">總轉供量 (kWh)</th>
+                  <th>缺口量 (kWh)</th>
+                  <th style="background:#FFFBEB;color:#D97706;">售電收入 (元)</th>
+                  <th style="background:#ECFDF5;color:#065F46;">毛利 (元)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>USR-001</td>
+                  <td>台積電竹科廠</td>
+                  <td style="text-align:center;">5.00</td>
+                  <td style="text-align:right;color:var(--accent);font-weight:500;">500,000</td>
+                  <td style="text-align:right;color:#8B5CF6;font-weight:500;">74,200</td>
+                  <td style="text-align:right;color:var(--success);font-weight:600;">574,200</td>
+                  <td style="text-align:right;color:#DC2626;">125,800</td>
+                  <td style="text-align:right;color:#D97706;font-weight:500;">$2,871,000</td>
+                  <td style="text-align:right;color:#065F46;font-weight:600;">$527,160</td>
+                </tr>
+                <tr>
+                  <td>USR-002</td>
+                  <td>聯華電子總部</td>
+                  <td style="text-align:center;">5.20</td>
+                  <td style="text-align:right;color:var(--accent);font-weight:500;">420,000</td>
+                  <td style="text-align:right;color:#8B5CF6;font-weight:500;">62,400</td>
+                  <td style="text-align:right;color:var(--success);font-weight:600;">482,400</td>
+                  <td style="text-align:right;color:#DC2626;">117,600</td>
+                  <td style="text-align:right;color:#D97706;font-weight:500;">$2,508,480</td>
+                  <td style="text-align:right;color:#065F46;font-weight:600;">$539,340</td>
+                </tr>
+                <tr>
+                  <td>USR-003</td>
+                  <td>全家便利商店A區</td>
+                  <td style="text-align:center;">5.50</td>
+                  <td style="text-align:right;color:var(--accent);font-weight:500;">390,000</td>
+                  <td style="text-align:right;color:#8B5CF6;font-weight:500;">57,900</td>
+                  <td style="text-align:right;color:var(--success);font-weight:600;">447,900</td>
+                  <td style="text-align:right;color:#DC2626;">102,100</td>
+                  <td style="text-align:right;color:#D97706;font-weight:500;">$2,463,450</td>
+                  <td style="text-align:right;color:#065F46;font-weight:600;">$635,580</td>
+                </tr>
+                <tr>
+                  <td>USR-004</td>
+                  <td>遠東百貨板橋店</td>
+                  <td style="text-align:center;">5.30</td>
+                  <td style="text-align:right;color:var(--accent);font-weight:500;">400,000</td>
+                  <td style="text-align:right;color:#8B5CF6;font-weight:500;">59,300</td>
+                  <td style="text-align:right;color:var(--success);font-weight:600;">459,300</td>
+                  <td style="text-align:right;color:#DC2626;">202,300</td>
+                  <td style="text-align:right;color:#D97706;font-weight:500;">$2,434,290</td>
+                  <td style="text-align:right;color:#065F46;font-weight:600;">$561,720</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr style="font-weight:700;background:#F8FAFC;">
+                  <td colspan="3" style="text-align:right;">合計</td>
+                  <td style="text-align:right;color:var(--accent);">1,710,000</td>
+                  <td style="text-align:right;color:#8B5CF6;">253,800</td>
+                  <td style="text-align:right;color:var(--success);">1,963,800</td>
+                  <td style="text-align:right;color:#DC2626;">547,800</td>
+                  <td style="text-align:right;color:#D97706;">$10,277,220</td>
+                  <td style="text-align:right;color:#065F46;">$2,263,800</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+
         <!-- Monthly tabs -->
         <div class="card" style="margin-top:1rem;">
           <h4 style="font-size:0.9375rem;font-weight:600;margin-bottom:0.75rem;">📅 各月結算明細</h4>
@@ -1520,6 +1670,11 @@
             <div class="tab" onclick="showM2Month(5)">6月</div>
           </div>
           <div id="m2-month-content"></div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+          <button class="btn btn-outline" onclick="showM2Step(4)">← 重新設定</button>
+          <button class="btn btn-primary" style="flex:1;" onclick="exportM2Results()">📥 匯出結算報告</button>
         </div>
 
       </div>
@@ -2470,56 +2625,189 @@
       }
     }
 
-    // M2 monthly mock data
+    // M2 monthly mock data with per-generator and per-consumer breakdown
     const m2MonthData = [
-      { month: '2025-01', p1: 280000, p2: 41000, total: 321000, surplus: 14500, shortage: 89000, peak: 107000, midpeak: 92000, offpeak: 88000, satmid: 34000 },
-      { month: '2025-02', p1: 265000, p2: 39200, total: 304200, surplus: 15800, shortage: 95800, peak: 101000, midpeak: 87000, offpeak: 83000, satmid: 33200 },
-      { month: '2025-03', p1: 295000, p2: 44000, total: 339000, surplus: 13200, shortage: 81000, peak: 113000, midpeak: 97000, offpeak: 92000, satmid: 37000 },
-      { month: '2025-04', p1: 290000, p2: 43500, total: 333500, surplus: 14800, shortage: 86500, peak: 111000, midpeak: 95000, offpeak: 90500, satmid: 37000 },
-      { month: '2025-05', p1: 300000, p2: 45100, total: 345100, surplus: 16200, shortage: 94900, peak: 115000, midpeak: 99000, offpeak: 93000, satmid: 38100 },
-      { month: '2025-06', p1: 280000, p2: 41000, total: 321000, surplus: 16700, shortage: 100600, peak: 107000, midpeak: 92000, offpeak: 88000, satmid: 34000 },
+      {
+        month: '2025-01', p1: 280000, p2: 41000, total: 321000, surplus: 14500, shortage: 89000,
+        gens: [
+          { id: 'GEN-001', name: '天能太陽能一廠', price: 4.20, p1: 95000, p2: 14100, total: 109100, surplus: 4700, cost: 458220 },
+          { id: 'GEN-002', name: '天能太陽能二廠', price: 4.50, p1: 57000, p2: 8500, total: 65500, surplus: 2900, cost: 294750 },
+          { id: 'GEN-003', name: '天能太陽能三廠', price: 3.80, p1: 128000, p2: 18400, total: 146400, surplus: 6900, cost: 556320 }
+        ],
+        usrs: [
+          { id: 'USR-001', name: '台積電竹科廠', price: 5.00, p1: 82000, p2: 12200, total: 94200, shortage: 20500, revenue: 471000, profit: 86580 },
+          { id: 'USR-002', name: '聯華電子總部', price: 5.20, p1: 69000, p2: 10200, total: 79200, shortage: 19200, revenue: 411840, profit: 88440 },
+          { id: 'USR-003', name: '全家便利商店A區', price: 5.50, p1: 64000, p2: 9500, total: 73500, shortage: 16700, revenue: 404250, profit: 104130 },
+          { id: 'USR-004', name: '遠東百貨板橋店', price: 5.30, p1: 65000, p2: 9100, total: 74100, shortage: 32600, revenue: 392730, profit: 86310 }
+        ]
+      },
+      {
+        month: '2025-02', p1: 265000, p2: 39200, total: 304200, surplus: 15800, shortage: 95800,
+        gens: [
+          { id: 'GEN-001', name: '天能太陽能一廠', price: 4.20, p1: 90000, p2: 13400, total: 103400, surplus: 5100, cost: 434280 },
+          { id: 'GEN-002', name: '天能太陽能二廠', price: 4.50, p1: 54000, p2: 8000, total: 62000, surplus: 3200, cost: 279000 },
+          { id: 'GEN-003', name: '天能太陽能三廠', price: 3.80, p1: 121000, p2: 17800, total: 138800, surplus: 7500, cost: 527440 }
+        ],
+        usrs: [
+          { id: 'USR-001', name: '台積電竹科廠', price: 5.00, p1: 77000, p2: 11400, total: 88400, shortage: 22800, revenue: 442000, profit: 80400 },
+          { id: 'USR-002', name: '聯華電子總部', price: 5.20, p1: 65000, p2: 9600, total: 74600, shortage: 20600, revenue: 387920, profit: 83280 },
+          { id: 'USR-003', name: '全家便利商店A區', price: 5.50, p1: 61000, p2: 9100, total: 70100, shortage: 17600, revenue: 385550, profit: 99550 },
+          { id: 'USR-004', name: '遠東百貨板橋店', price: 5.30, p1: 62000, p2: 9100, total: 71100, shortage: 34800, revenue: 376830, profit: 82650 }
+        ]
+      },
+      {
+        month: '2025-03', p1: 295000, p2: 44000, total: 339000, surplus: 13200, shortage: 81000,
+        gens: [
+          { id: 'GEN-001', name: '天能太陽能一廠', price: 4.20, p1: 100000, p2: 15000, total: 115000, surplus: 4200, cost: 483000 },
+          { id: 'GEN-002', name: '天能太陽能二廠', price: 4.50, p1: 60000, p2: 9000, total: 69000, surplus: 2600, cost: 310500 },
+          { id: 'GEN-003', name: '天能太陽能三廠', price: 3.80, p1: 135000, p2: 20000, total: 155000, surplus: 6400, cost: 589000 }
+        ],
+        usrs: [
+          { id: 'USR-001', name: '台積電竹科廠', price: 5.00, p1: 86000, p2: 12800, total: 98800, shortage: 18700, revenue: 494000, profit: 90700 },
+          { id: 'USR-002', name: '聯華電子總部', price: 5.20, p1: 72000, p2: 10800, total: 82800, shortage: 17400, revenue: 430560, profit: 92460 },
+          { id: 'USR-003', name: '全家便利商店A區', price: 5.50, p1: 68000, p2: 10200, total: 78200, shortage: 14800, revenue: 430100, profit: 111350 },
+          { id: 'USR-004', name: '遠東百貨板橋店', price: 5.30, p1: 69000, p2: 10200, total: 79200, shortage: 30100, revenue: 419760, profit: 91880 }
+        ]
+      },
+      {
+        month: '2025-04', p1: 290000, p2: 43500, total: 333500, surplus: 14800, shortage: 86500,
+        gens: [
+          { id: 'GEN-001', name: '天能太陽能一廠', price: 4.20, p1: 98000, p2: 14800, total: 112800, surplus: 4800, cost: 473760 },
+          { id: 'GEN-002', name: '天能太陽能二廠', price: 4.50, p1: 59000, p2: 8800, total: 67800, surplus: 2900, cost: 305100 },
+          { id: 'GEN-003', name: '天能太陽能三廠', price: 3.80, p1: 133000, p2: 19900, total: 152900, surplus: 7100, cost: 581020 }
+        ],
+        usrs: [
+          { id: 'USR-001', name: '台積電竹科廠', price: 5.00, p1: 84000, p2: 12600, total: 96600, shortage: 20200, revenue: 483000, profit: 88120 },
+          { id: 'USR-002', name: '聯華電子總部', price: 5.20, p1: 71000, p2: 10700, total: 81700, shortage: 18400, revenue: 424840, profit: 91240 },
+          { id: 'USR-003', name: '全家便利商店A區', price: 5.50, p1: 67000, p2: 10000, total: 77000, shortage: 16000, revenue: 423500, profit: 109500 },
+          { id: 'USR-004', name: '遠東百貨板橋店', price: 5.30, p1: 68000, p2: 10200, total: 78200, shortage: 31900, revenue: 414460, profit: 90700 }
+        ]
+      },
+      {
+        month: '2025-05', p1: 300000, p2: 45100, total: 345100, surplus: 16200, shortage: 94900,
+        gens: [
+          { id: 'GEN-001', name: '天能太陽能一廠', price: 4.20, p1: 101000, p2: 15400, total: 116400, surplus: 5200, cost: 488880 },
+          { id: 'GEN-002', name: '天能太陽能二廠', price: 4.50, p1: 61000, p2: 9100, total: 70100, surplus: 3200, cost: 315450 },
+          { id: 'GEN-003', name: '天能太陽能三廠', price: 3.80, p1: 138000, p2: 20600, total: 158600, surplus: 7800, cost: 602680 }
+        ],
+        usrs: [
+          { id: 'USR-001', name: '台積電竹科廠', price: 5.00, p1: 87000, p2: 13100, total: 100100, shortage: 21500, revenue: 500500, profit: 91850 },
+          { id: 'USR-002', name: '聯華電子總部', price: 5.20, p1: 73000, p2: 11000, total: 84000, shortage: 20200, revenue: 436800, profit: 93880 },
+          { id: 'USR-003', name: '全家便利商店A區', price: 5.50, p1: 69000, p2: 10400, total: 79400, shortage: 17200, revenue: 436700, profit: 113070 },
+          { id: 'USR-004', name: '遠東百貨板橋店', price: 5.30, p1: 71000, p2: 10600, total: 81600, shortage: 36000, revenue: 432480, profit: 94460 }
+        ]
+      },
+      {
+        month: '2025-06', p1: 280000, p2: 41000, total: 321000, surplus: 16700, shortage: 100600,
+        gens: [
+          { id: 'GEN-001', name: '天能太陽能一廠', price: 4.20, p1: 96000, p2: 14300, total: 110300, surplus: 5300, cost: 463260 },
+          { id: 'GEN-002', name: '天能太陽能二廠', price: 4.50, p1: 57000, p2: 8500, total: 65500, surplus: 3400, cost: 294750 },
+          { id: 'GEN-003', name: '天能太陽能三廠', price: 3.80, p1: 127000, p2: 18200, total: 145200, surplus: 8000, cost: 551760 }
+        ],
+        usrs: [
+          { id: 'USR-001', name: '台積電竹科廠', price: 5.00, p1: 82000, p2: 12100, total: 94100, shortage: 22300, revenue: 470500, profit: 86100 },
+          { id: 'USR-002', name: '聯華電子總部', price: 5.20, p1: 69000, p2: 10200, total: 79200, shortage: 21800, revenue: 411840, profit: 88440 },
+          { id: 'USR-003', name: '全家便利商店A區', price: 5.50, p1: 64000, p2: 9500, total: 73500, shortage: 18200, revenue: 404250, profit: 104630 },
+          { id: 'USR-004', name: '遠東百貨板橋店', price: 5.30, p1: 65000, p2: 9200, total: 74200, shortage: 38300, revenue: 393260, profit: 87190 }
+        ]
+      },
     ];
 
     function showM2Month(idx) {
       document.querySelectorAll('#m2-month-tabs .tab').forEach((t, i) => t.className = 'tab' + (i === idx ? ' active' : ''));
       const d = m2MonthData[idx];
+      const monthLabel = d.month.slice(5) + '月';
+
+      // Build generator rows
+      let genRows = '';
+      let genTotalP1 = 0, genTotalP2 = 0, genTotalAll = 0, genTotalSurplus = 0, genTotalCost = 0;
+      d.gens.forEach(g => {
+        genTotalP1 += g.p1; genTotalP2 += g.p2; genTotalAll += g.total; genTotalSurplus += g.surplus; genTotalCost += g.cost;
+        genRows += `<tr>
+          <td>${g.id}</td><td>${g.name}</td><td style="text-align:center;">${g.price.toFixed(2)}</td>
+          <td style="text-align:right;color:#6366F1;font-weight:500;">${g.p1.toLocaleString()}</td>
+          <td style="text-align:right;color:#8B5CF6;font-weight:500;">${g.p2.toLocaleString()}</td>
+          <td style="text-align:right;color:#10B981;font-weight:600;">${g.total.toLocaleString()}</td>
+          <td style="text-align:right;color:#DC2626;">${g.surplus.toLocaleString()}</td>
+          <td style="text-align:right;color:#D97706;font-weight:500;">$${g.cost.toLocaleString()}</td>
+        </tr>`;
+      });
+
+      // Build consumer rows
+      let usrRows = '';
+      let usrTotalP1 = 0, usrTotalP2 = 0, usrTotalAll = 0, usrTotalShortage = 0, usrTotalRevenue = 0, usrTotalProfit = 0;
+      d.usrs.forEach(u => {
+        usrTotalP1 += u.p1; usrTotalP2 += u.p2; usrTotalAll += u.total; usrTotalShortage += u.shortage; usrTotalRevenue += u.revenue; usrTotalProfit += u.profit;
+        usrRows += `<tr>
+          <td>${u.id}</td><td>${u.name}</td><td style="text-align:center;">${u.price.toFixed(2)}</td>
+          <td style="text-align:right;color:#6366F1;font-weight:500;">${u.p1.toLocaleString()}</td>
+          <td style="text-align:right;color:#8B5CF6;font-weight:500;">${u.p2.toLocaleString()}</td>
+          <td style="text-align:right;color:#10B981;font-weight:600;">${u.total.toLocaleString()}</td>
+          <td style="text-align:right;color:#DC2626;">${u.shortage.toLocaleString()}</td>
+          <td style="text-align:right;color:#D97706;font-weight:500;">$${u.revenue.toLocaleString()}</td>
+          <td style="text-align:right;color:#065F46;font-weight:600;">$${u.profit.toLocaleString()}</td>
+        </tr>`;
+      });
+
       document.getElementById('m2-month-content').innerHTML = `
     <div class="metrics" style="margin:0.75rem 0;">
       <div class="metric"><div class="m-label">Phase 1 媒合量</div><div class="m-value">${d.p1.toLocaleString()}</div><div class="m-sub">kWh</div></div>
       <div class="metric purple"><div class="m-label">Phase 2 媒合量</div><div class="m-value">${d.p2.toLocaleString()}</div><div class="m-sub">kWh</div></div>
       <div class="metric green"><div class="m-label">總轉供量</div><div class="m-value">${d.total.toLocaleString()}</div><div class="m-sub">kWh</div></div>
-      <div class="metric red"><div class="m-label">發電端餘電 (Bmi)</div><div class="m-value">${d.surplus.toLocaleString()}</div><div class="m-sub">kWh</div></div>
-      <div class="metric purple"><div class="m-label">用電端缺口 (Sni)</div><div class="m-value">${d.shortage.toLocaleString()}</div><div class="m-sub">kWh</div></div>
+      <div class="metric" style="border-left:3px solid #F59E0B;"><div class="m-label">毛利</div><div class="m-value" style="color:#D97706;">$${usrTotalProfit.toLocaleString()}</div><div class="m-sub">元</div></div>
+      <div class="metric red"><div class="m-label">發電端餘電</div><div class="m-value">${d.surplus.toLocaleString()}</div><div class="m-sub">kWh</div></div>
+      <div class="metric purple"><div class="m-label">用電端缺口</div><div class="m-value">${d.shortage.toLocaleString()}</div><div class="m-sub">kWh</div></div>
     </div>
-    <h5 style="font-size:0.8125rem;font-weight:600;margin:0.75rem 0 0.5rem;">分時段統計</h5>
-    <table><thead><tr><th>時段</th><th>轉供量 (kWh)</th></tr></thead><tbody>
-      <tr><td>尖峰</td><td>${d.peak.toLocaleString()}</td></tr>
-      <tr><td>半尖峰</td><td>${d.midpeak.toLocaleString()}</td></tr>
-      <tr><td>離峰</td><td>${d.offpeak.toLocaleString()}</td></tr>
-      <tr><td>週六半尖峰</td><td>${d.satmid.toLocaleString()}</td></tr>
-      <tr style="font-weight:600;background:#F8FAFC;"><td>合計</td><td>${d.total.toLocaleString()}</td></tr>
-    </tbody></table>
+
+    <h5 style="font-size:0.875rem;font-weight:600;margin:1rem 0 0.5rem;">🔋 發電端結算明細（${monthLabel}）</h5>
+    <div style="overflow-x:auto;">
+    <table><thead><tr>
+      <th>電號</th><th>案場名稱</th><th>收購價</th>
+      <th style="background:#EEF2FF;color:#6366F1;">第一階段 (kWh)</th>
+      <th style="background:#F5F3FF;color:#8B5CF6;">第二階段 (kWh)</th>
+      <th style="background:#F0FDF4;color:#10B981;">總轉供量 (kWh)</th>
+      <th>餘電量 (kWh)</th>
+      <th style="background:#FFFBEB;color:#D97706;">收購成本 (元)</th>
+    </tr></thead><tbody>
+      ${genRows}
+    </tbody><tfoot><tr style="font-weight:700;background:#F8FAFC;">
+      <td colspan="3" style="text-align:right;">合計</td>
+      <td style="text-align:right;color:#6366F1;">${genTotalP1.toLocaleString()}</td>
+      <td style="text-align:right;color:#8B5CF6;">${genTotalP2.toLocaleString()}</td>
+      <td style="text-align:right;color:#10B981;">${genTotalAll.toLocaleString()}</td>
+      <td style="text-align:right;color:#DC2626;">${genTotalSurplus.toLocaleString()}</td>
+      <td style="text-align:right;color:#D97706;">$${genTotalCost.toLocaleString()}</td>
+    </tr></tfoot></table>
+    </div>
+
+    <h5 style="font-size:0.875rem;font-weight:600;margin:1rem 0 0.5rem;">🏢 用電端結算明細（${monthLabel}）</h5>
+    <div style="overflow-x:auto;">
+    <table><thead><tr>
+      <th>電號</th><th>企業名稱</th><th>售電價</th>
+      <th style="background:#EEF2FF;color:#6366F1;">第一階段 (kWh)</th>
+      <th style="background:#F5F3FF;color:#8B5CF6;">第二階段 (kWh)</th>
+      <th style="background:#F0FDF4;color:#10B981;">總轉供量 (kWh)</th>
+      <th>缺口量 (kWh)</th>
+      <th style="background:#FFFBEB;color:#D97706;">售電收入 (元)</th>
+      <th style="background:#ECFDF5;color:#065F46;">毛利 (元)</th>
+    </tr></thead><tbody>
+      ${usrRows}
+    </tbody><tfoot><tr style="font-weight:700;background:#F8FAFC;">
+      <td colspan="3" style="text-align:right;">合計</td>
+      <td style="text-align:right;color:#6366F1;">${usrTotalP1.toLocaleString()}</td>
+      <td style="text-align:right;color:#8B5CF6;">${usrTotalP2.toLocaleString()}</td>
+      <td style="text-align:right;color:#10B981;">${usrTotalAll.toLocaleString()}</td>
+      <td style="text-align:right;color:#DC2626;">${usrTotalShortage.toLocaleString()}</td>
+      <td style="text-align:right;color:#D97706;">$${usrTotalRevenue.toLocaleString()}</td>
+      <td style="text-align:right;color:#065F46;">$${usrTotalProfit.toLocaleString()}</td>
+    </tr></tfoot></table>
+    </div>
   `;
     }
 
     function runSettlement() {
       showM2Step(5);
       showM2Month(0);
-
-      const ctx = document.getElementById('chartSettle').getContext('2d');
-      if (window.settleChart) window.settleChart.destroy();
-      const months = m2MonthData.map(d => d.month.slice(5) + '月');
-      window.settleChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: months,
-          datasets: [
-            { label: 'Phase 1', data: m2MonthData.map(d => d.p1), backgroundColor: '#6366F1' },
-            { label: 'Phase 2', data: m2MonthData.map(d => d.p2), backgroundColor: '#8B5CF6' }
-          ]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { grid: { display: false }, stacked: true }, y: { beginAtZero: true, grid: { color: '#F1F5F9' }, stacked: true } } }
-      });
     }
 
     function completeM2() {
@@ -2528,6 +2816,10 @@
       document.getElementById('nav-m2-circle').textContent = '✓';
       document.getElementById('nav-m2-status').textContent = '✓ 完成';
       showPage('m3');
+    }
+
+    function exportM2Results() {
+      alert('📥 結算報告已匯出！\n\n包含：\n• 各發電端兩階段轉供量明細\n• 各用電端兩階段轉供量明細\n• 毛利分析摘要\n• 各月結算明細');
     }
 
     // Module 3: Optimization Steps
